@@ -71,19 +71,31 @@ export default function DashboardPage() {
       const [ordersResult, stateResult] = await Promise.allSettled([
         // Orders API for lifetime purchases
         (async () => {
-          const result = await authClient.customer.orders.list({
-            query: {
-              page: 1,
-              limit: 10,
-              productBillingType: "one_time",
-            },
-          });
-          return result;
+          try {
+            const result = await authClient.customer.orders.list({
+              query: {
+                page: 1,
+                limit: 10,
+                productBillingType: "one_time",
+              },
+            });
+            return result;
+          } catch (error) {
+            // Silently handle validation errors and return empty orders
+            // This prevents error toasts while keeping the functionality intact
+            console.log("Orders API validation error (expected if customer not configured):", error);
+            return { data: { result: { items: [] } } };
+          }
         })(),
         // State API for active subscriptions
         (async () => {
-          const result = await authClient.customer.state();
-          return result;
+          try {
+            const result = await authClient.customer.state();
+            return result;
+          } catch (error) {
+            console.log("Customer state API error:", error);
+            return { data: null };
+          }
         })(),
       ]);
 
