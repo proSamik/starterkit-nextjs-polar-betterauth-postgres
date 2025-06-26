@@ -40,7 +40,7 @@ export const auth = betterAuth({
           products: [
             {
               productId: process.env.POLAR_MONTHLY_PRODUCT_ID || "",
-              slug: "monthly",
+              slug: "Free",
             },
             {
               productId: process.env.POLAR_YEARLY_PRODUCT_ID || "",
