@@ -18,7 +18,11 @@ export default () => {
         process.env.POLAR_LIFETIME_PRODUCT_ID,
     },
     images: {
-      domains: ["img.youtube.com"], // Added to allow images from YouTube
+      domains: [
+        "img.youtube.com", // YouTube images
+        "lh3.googleusercontent.com", // Google profile images
+        "avatars.githubusercontent.com", // GitHub profile images
+      ],
     },
   };
   const withNextIntl = createNextIntlPlugin();
