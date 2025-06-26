@@ -15,7 +15,7 @@ interface PricingTier {
   cta: string;
   highlighted?: boolean;
   badge?: string;
-  planSlug?: "monthly" | "yearly" | "lifetime";
+  planSlug?: "Free" | "yearly" | "lifetime";
 }
 
 const pricingTiers: PricingTier[] = [
@@ -32,6 +32,7 @@ const pricingTiers: PricingTier[] = [
       "MIT License",
     ],
     cta: "Get Started Free",
+    planSlug: "Free",
   },
   {
     name: "Pro",
@@ -49,7 +50,7 @@ const pricingTiers: PricingTier[] = [
     cta: "Get Pro Version",
     highlighted: true,
     badge: "Most Popular",
-    planSlug: "monthly",
+    planSlug: "lifetime",
   },
   {
     name: "Enterprise",
@@ -67,7 +68,7 @@ const pricingTiers: PricingTier[] = [
     ],
     cta: "Get Enterprise",
     badge: "Best Value",
-    planSlug: "lifetime",
+    planSlug: "yearly",
   },
 ];
 
@@ -145,7 +146,7 @@ export function PricingSection() {
   }, [searchParams, session]);
 
   const handleCheckout = async (
-    planSlug: "monthly" | "yearly" | "lifetime",
+    planSlug: "Free" | "yearly" | "lifetime",
   ) => {
     // Check if user is authenticated
     if (!session?.user) {
