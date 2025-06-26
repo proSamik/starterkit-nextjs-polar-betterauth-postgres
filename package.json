@@ -76,7 +76,7 @@
     "framer-motion": "^12.15.0",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "lucide-react": "^0.486.0",
-    "motion": "^12.18.1",
+    "motion": "^12.19.1",
     "nanoid": "^5.1.5",
     "next": "15.3.2",
     "next-intl": "^4.1.0",
