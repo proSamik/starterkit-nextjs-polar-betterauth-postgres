@@ -1,30 +1,62 @@
-import { getSession } from "auth/server";
-import { redirect } from "next/navigation";
-import { DashboardHeader } from "@/components/layouts/dashboard-header";
-import { SidebarProvider } from "ui/sidebar";
-import { cookies } from "next/headers";
-import { COOKIE_KEY_SIDEBAR_STATE } from "lib/const";
+"use client";
 
-export default async function PremiumLayout({
+import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { authClient } from "auth/client";
+import { AppSidebar } from "@/components/layouts/app-sidebar";
+import { Settings } from "@/components/settings";
+import { Profile } from "@/components/profile";
+
+/**
+ * Premium layout with sidebar navigation and dynamic content rendering
+ */
+export default function PremiumLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [session, cookieStore] = await Promise.all([getSession(), cookies()]);
+  const { data: session, isPending: isLoading } = authClient.useSession();
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'profile' | 'settings'>('dashboard');
 
-  if (!session) {
-    return redirect("/sign-in");
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (!isLoading && !session) {
+      redirect("/sign-in");
+    }
+  }, [session, isLoading]);
+
+  const handleNavigation = (page: 'dashboard' | 'profile' | 'settings') => {
+    setCurrentPage(page);
+  };
+
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return children; // Render the original dashboard page
+      case 'profile':
+        return <Profile />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return children;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  const isCollapsed =
-    cookieStore.get(COOKIE_KEY_SIDEBAR_STATE)?.value !== "true";
+  if (!session) {
+    return null; // Handled by redirect
+  }
 
   return (
-    <SidebarProvider defaultOpen={!isCollapsed}>
-      <main className="relative bg-background w-full flex flex-col h-screen">
-        <DashboardHeader />
-        <div className="flex-1 overflow-y-auto p-6">{children}</div>
-      </main>
-    </SidebarProvider>
+    <AppSidebar onNavigate={handleNavigation}>
+      {renderContent()}
+    </AppSidebar>
   );
 }
