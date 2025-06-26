@@ -13,6 +13,7 @@ export const UserSchema = pgTable("user", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  normalizedEmail: text("normalized_email").unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   password: text("password"),
   image: text("image"),
