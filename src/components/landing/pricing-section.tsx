@@ -306,7 +306,7 @@ export function PricingSection() {
                       <span className="text-gray-600 ml-1"> one-time</span>
                     )}
                     {tier.name === "Enterprise" && (
-                      <span className="text-gray-600 ml-1"> one-time</span>
+                      <span className="text-gray-600 ml-1"> Lifetime</span>
                     )}
                   </div>
                   <p className="text-gray-600">{tier.description}</p>
