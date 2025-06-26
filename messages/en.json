@@ -1,0 +1,60 @@
+{
+  "Auth": {
+    "Intro": {
+      "description": "Build modern web applications with Polar.sh payments, Better Auth authentication, and Postgres database."
+    },
+    "SignIn": {
+      "title": "Welcome Back",
+      "welcome": "Welcome Back",
+      "description": "Sign in to your account to continue",
+      "email": "Email",
+      "password": "Password",
+      "signIn": "Sign In",
+      "orContinueWith": "or continue with",
+      "noAccount": "Don't have an account? ",
+      "signUp": "Sign up",
+      "forgotPassword": "Forgot your password?",
+      "rememberMe": "Remember me",
+      "enterOtp": "Enter verification code",
+      "otpDescription": "We've sent a verification code to your email",
+      "verifyAndSignIn": "Verify & Sign In",
+      "backToSignIn": "Back to Sign In",
+      "resendCode": "Resend code",
+      "oauthClientIdNotSet": "{provider} client ID is not configured"
+    },
+    "SignUp": {
+      "title": "Create Account",
+      "description": "Get started with your new account",
+      "name": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "signUp": "Create Account",
+      "signIn": "Sign In",
+      "alreadyHaveAccount": "Already have an account? ",
+      "agreeToTerms": "I agree to the Terms of Service and Privacy Policy"
+    }
+  },
+  "Dashboard": {
+    "welcome": "Welcome to your dashboard",
+    "navigation": {
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout"
+    }
+  },
+  "Common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next"
+  }
+} 
