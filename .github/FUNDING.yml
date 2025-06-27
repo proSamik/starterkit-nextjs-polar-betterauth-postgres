@@ -1,0 +1,8 @@
+# GitHub funding configuration
+# This file defines sponsorship options for the repository
+
+# GitHub sponsors username
+github: prosamik
+
+# Optional: Custom sponsorship URLs
+# custom: ["https://buy-me-a-coffee.com/yourname", "https://paypal.me/yourname"] 
