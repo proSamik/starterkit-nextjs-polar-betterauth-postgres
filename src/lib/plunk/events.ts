@@ -39,453 +39,122 @@
 
 import { getPlunkClient } from "./client";
 import type { PlunkResponse } from "./client";
+import { validateEmailSecurity } from "@/lib/auth/rate-limiter";
 
 /**
- * Generate modern HTML email template for email verification with link
+ * Generate email verification HTML
  * @param verificationUrl The verification URL to include in the email
- * @returns HTML email template with shadcn-style design
+ * @returns HTML email template
  */
 function generateEmailVerificationHTML(verificationUrl: string): string {
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email - Polar SaaS Kit</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #020817;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8fafc;
-        }
-        .container {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 48px 40px;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            border: 1px solid #e2e8f0;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-            letter-spacing: -0.025em;
-        }
-        .title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-            line-height: 1.2;
-            letter-spacing: -0.025em;
-        }
-        .subtitle {
-            color: #64748b;
-            font-size: 16px;
-            margin-bottom: 0;
-        }
-        .content {
-            margin: 32px 0;
-        }
-        .description {
-            color: #475569;
-            font-size: 16px;
-            line-height: 1.7;
-            margin-bottom: 32px;
-        }
-        .button-container {
-            text-align: center;
-            margin: 40px 0;
-        }
-        .verify-button {
-            display: inline-block;
-            background: #0f172a;
-            color: #ffffff;
-            padding: 14px 32px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.2s ease;
-            border: 1px solid #0f172a;
-        }
-        .verify-button:hover {
-            background: #1e293b;
-            border-color: #1e293b;
-        }
-        .alternative-link {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
-            text-align: center;
-        }
-        .alternative-link p {
-            margin: 0 0 12px 0;
-            color: #475569;
-            font-size: 14px;
-        }
-        .link-text {
-            word-break: break-all;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            font-size: 12px;
-            color: #3730a3;
-            background: #ffffff;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-        .security-notice {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-left: 4px solid #f59e0b;
-            padding: 20px;
-            margin: 32px 0;
-            border-radius: 8px;
-        }
-        .security-notice h4 {
-            color: #92400e;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0 0 8px 0;
-        }
-        .security-notice p {
-            color: #a16207;
-            font-size: 14px;
-            margin: 0;
-            line-height: 1.5;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 48px;
-            padding-top: 32px;
-            border-top: 1px solid #e2e8f0;
-        }
-        .footer-text {
-            color: #64748b;
-            font-size: 14px;
-            margin: 8px 0;
-        }
-        .footer-links {
-            margin-top: 16px;
-        }
-        .footer-link {
-            color: #64748b;
-            text-decoration: none;
-            font-size: 14px;
-            margin: 0 16px;
-        }
-        .footer-link:hover {
-            color: #0f172a;
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 32px 24px;
-            }
-            .title {
-                font-size: 28px;
-            }
-            .verify-button {
-                padding: 12px 24px;
-                font-size: 15px;
-            }
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🚀 Polar SaaS Kit</div>
-            <h1 class="title">Verify Your Email</h1>
-            <p class="subtitle">Welcome! Please verify your email address to continue</p>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; color: #020817; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+    <div style="background: #ffffff; border-radius: 12px; padding: 48px 40px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.025em;">🚀 Polar SaaS Kit</div>
+            <h1 style="font-size: 32px; font-weight: 700; color: #0f172a; margin-bottom: 8px; line-height: 1.2; letter-spacing: -0.025em;">Verify Your Email</h1>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 0;">Complete your account setup</p>
         </div>
-
-        <div class="content">
-            <p class="description">
-                Thanks for signing up for Polar SaaS Kit! To complete your account setup and start building amazing SaaS applications, please verify your email address by clicking the button below.
+        <div style="margin: 32px 0;">
+            <p style="color: #475569; font-size: 16px; line-height: 1.7; margin-bottom: 32px;">
+                Welcome to Polar SaaS Kit! To complete your account setup and start using our platform, please verify your email address by clicking the button below.
             </p>
-
-            <div class="button-container">
-                <a href="${verificationUrl}" class="verify-button">
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="${verificationUrl}" style="display: inline-block; background: #0f172a; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; border: 1px solid #0f172a;">
                     Verify Email Address
                 </a>
             </div>
-
-            <div class="alternative-link">
-                <p>If the button doesn't work, copy and paste this link into your browser:</p>
-                <div class="link-text">${verificationUrl}</div>
+            <div style="background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+                <p style="margin: 0 0 12px 0; color: #475569; font-size: 14px;">
+                    If the button doesn&apos;t work, copy and paste this link into your browser:
+                </p>
+                <div style="word-break: break-all; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; color: #3730a3; background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    ${verificationUrl}
+                </div>
             </div>
-
-            <div class="security-notice">
-                <h4>🔒 Security Notice</h4>
-                <p>This verification link will expire in 15 minutes for your security. If you didn't create an account with us, please ignore this email.</p>
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; padding: 20px; margin: 32px 0; border-radius: 8px;">
+                <h4 style="color: #92400e; font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">🔒 Security Notice</h4>
+                <p style="color: #a16207; font-size: 14px; margin: 0; line-height: 1.5;">
+                    This verification link will expire in 15 minutes for your security. If you didn&apos;t create an account with us, please ignore this email.
+                </p>
             </div>
         </div>
-
-        <div class="footer">
-            <p class="footer-text">Welcome to the future of modern SaaS development!</p>
-            <p class="footer-text">Built with Next.js 15, Better Auth, and Polar.sh</p>
-            <div class="footer-links">
-                <a href="#" class="footer-link">Privacy Policy</a>
-                <a href="#" class="footer-link">Terms of Service</a>
-                <a href="#" class="footer-link">Support</a>
+        <div style="text-align: center; margin-top: 48px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Need help? Contact our support team for assistance.</p>
+            <div style="margin-top: 16px;">
+                <a href="#" style="color: #64748b; text-decoration: none; font-size: 14px; margin: 0 16px;">Privacy Policy</a>
+                <a href="#" style="color: #64748b; text-decoration: none; font-size: 14px; margin: 0 16px;">Terms of Service</a>
+                <a href="#" style="color: #64748b; text-decoration: none; font-size: 14px; margin: 0 16px;">Support</a>
             </div>
-            <p class="footer-text" style="margin-top: 24px;">© 2024 Polar SaaS Kit. All rights reserved.</p>
+            <p style="color: #64748b; font-size: 14px; margin: 8px 0; margin-top: 24px;">© 2024 Polar SaaS Kit. All rights reserved.</p>
         </div>
     </div>
 </body>
-</html>
-`;
+</html>`;
 }
 
 /**
- * Generate modern HTML email template for password reset with link
+ * Generate password reset HTML
  * @param resetUrl The password reset URL to include in the email
- * @returns HTML email template with shadcn-style design
+ * @returns HTML email template
  */
 function generatePasswordResetHTML(resetUrl: string): string {
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Your Password - Polar SaaS Kit</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #020817;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8fafc;
-        }
-        .container {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 48px 40px;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            border: 1px solid #e2e8f0;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-            letter-spacing: -0.025em;
-        }
-        .title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-            line-height: 1.2;
-            letter-spacing: -0.025em;
-        }
-        .subtitle {
-            color: #64748b;
-            font-size: 16px;
-            margin-bottom: 0;
-        }
-        .content {
-            margin: 32px 0;
-        }
-        .description {
-            color: #475569;
-            font-size: 16px;
-            line-height: 1.7;
-            margin-bottom: 32px;
-        }
-        .button-container {
-            text-align: center;
-            margin: 40px 0;
-        }
-        .reset-button {
-            display: inline-block;
-            background: #dc2626;
-            color: #ffffff;
-            padding: 14px 32px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.2s ease;
-            border: 1px solid #dc2626;
-        }
-        .reset-button:hover {
-            background: #b91c1c;
-            border-color: #b91c1c;
-        }
-        .alternative-link {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
-            text-align: center;
-        }
-        .alternative-link p {
-            margin: 0 0 12px 0;
-            color: #475569;
-            font-size: 14px;
-        }
-        .link-text {
-            word-break: break-all;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            font-size: 12px;
-            color: #3730a3;
-            background: #ffffff;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-        .security-notice {
-            background: #fef2f2;
-            border: 1px solid #ef4444;
-            border-left: 4px solid #ef4444;
-            padding: 20px;
-            margin: 32px 0;
-            border-radius: 8px;
-        }
-        .security-notice h4 {
-            color: #991b1b;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0 0 8px 0;
-        }
-        .security-notice p {
-            color: #b91c1c;
-            font-size: 14px;
-            margin: 0;
-            line-height: 1.5;
-        }
-        .info-notice {
-            background: #eff6ff;
-            border: 1px solid #3b82f6;
-            border-left: 4px solid #3b82f6;
-            padding: 20px;
-            margin: 32px 0;
-            border-radius: 8px;
-        }
-        .info-notice h4 {
-            color: #1d4ed8;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0 0 8px 0;
-        }
-        .info-notice p {
-            color: #1e40af;
-            font-size: 14px;
-            margin: 0;
-            line-height: 1.5;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 48px;
-            padding-top: 32px;
-            border-top: 1px solid #e2e8f0;
-        }
-        .footer-text {
-            color: #64748b;
-            font-size: 14px;
-            margin: 8px 0;
-        }
-        .footer-links {
-            margin-top: 16px;
-        }
-        .footer-link {
-            color: #64748b;
-            text-decoration: none;
-            font-size: 14px;
-            margin: 0 16px;
-        }
-        .footer-link:hover {
-            color: #0f172a;
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 32px 24px;
-            }
-            .title {
-                font-size: 28px;
-            }
-            .reset-button {
-                padding: 12px 24px;
-                font-size: 15px;
-            }
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🚀 Polar SaaS Kit</div>
-            <h1 class="title">Reset Your Password</h1>
-            <p class="subtitle">We received a request to reset your password</p>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; color: #020817; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+    <div style="background: #ffffff; border-radius: 12px; padding: 48px 40px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.025em;">🚀 Polar SaaS Kit</div>
+            <h1 style="font-size: 32px; font-weight: 700; color: #0f172a; margin-bottom: 8px; line-height: 1.2; letter-spacing: -0.025em;">Reset Your Password</h1>
+            <p style="color: #64748b; font-size: 16px; margin-bottom: 0;">Secure password reset request</p>
         </div>
-
-        <div class="content">
-            <p class="description">
-                Someone (hopefully you!) requested a password reset for your Polar SaaS Kit account. If this was you, click the button below to reset your password and regain access to your account.
+        <div style="margin: 32px 0;">
+            <p style="color: #475569; font-size: 16px; line-height: 1.7; margin-bottom: 32px;">
+                We received a request to reset your password for your Polar SaaS Kit account. Click the button below to create a new password. If you didn&apos;t request this, you can safely ignore this email.
             </p>
-
-            <div class="button-container">
-                <a href="${resetUrl}" class="reset-button">
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="${resetUrl}" style="display: inline-block; background: #dc2626; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; border: 1px solid #dc2626;">
                     Reset My Password
                 </a>
             </div>
-
-            <div class="alternative-link">
-                <p>If the button doesn't work, copy and paste this link into your browser:</p>
-                <div class="link-text">${resetUrl}</div>
+            <div style="background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+                <p style="margin: 0 0 12px 0; color: #475569; font-size: 14px;">
+                    If the button doesn&apos;t work, copy and paste this link into your browser:
+                </p>
+                <div style="word-break: break-all; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; color: #3730a3; background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    ${resetUrl}
+                </div>
             </div>
-
-            <div class="info-notice">
-                <h4>⏱️ Time Limit</h4>
-                <p>This password reset link will expire in 5 minutes for your security. After that, you'll need to request a new reset link.</p>
-            </div>
-
-            <div class="security-notice">
-                <h4>🔒 Security Notice</h4>
-                <p>If you didn't request a password reset, please ignore this email. Your account remains secure and no changes have been made.</p>
+            <div style="background: #fef2f2; border: 1px solid #ef4444; border-left: 4px solid #ef4444; padding: 20px; margin: 32px 0; border-radius: 8px;">
+                <h4 style="color: #991b1b; font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">⚠️ Security Alert</h4>
+                <p style="color: #b91c1c; font-size: 14px; margin: 0; line-height: 1.5;">
+                    This password reset link will expire in 5 minutes for your security. If you didn&apos;t request a password reset, please contact our support team immediately.
+                </p>
             </div>
         </div>
-
-        <div class="footer">
-            <p class="footer-text">Need help? Contact our support team for assistance.</p>
-            <div class="footer-links">
-                <a href="#" class="footer-link">Privacy Policy</a>
-                <a href="#" class="footer-link">Terms of Service</a>
-                <a href="#" class="footer-link">Support</a>
+        <div style="text-align: center; margin-top: 48px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 14px; margin: 8px 0;">Need help? Contact our support team for assistance.</p>
+            <div style="margin-top: 16px;">
+                <a href="#" style="color: #64748b; text-decoration: none; font-size: 14px; margin: 0 16px;">Privacy Policy</a>
+                <a href="#" style="color: #64748b; text-decoration: none; font-size: 14px; margin: 0 16px;">Terms of Service</a>
+                <a href="#" style="color: #64748b; text-decoration: none; font-size: 14px; margin: 0 16px;">Support</a>
             </div>
-            <p class="footer-text" style="margin-top: 24px;">© 2024 Polar SaaS Kit. All rights reserved.</p>
+            <p style="color: #64748b; font-size: 14px; margin: 8px 0; margin-top: 24px;">© 2024 Polar SaaS Kit. All rights reserved.</p>
         </div>
     </div>
 </body>
-</html>
-`;
+</html>`;
 }
 
 /**
@@ -499,6 +168,16 @@ export async function sendEmailVerificationLink(
   verificationUrl: string,
 ): Promise<PlunkResponse> {
   try {
+    // Validate email security
+    const emailValidation = validateEmailSecurity(email);
+    if (!emailValidation.valid) {
+      console.error(`Security validation failed for email ${email}:`, emailValidation.error);
+      return {
+        success: false,
+        error: emailValidation.error || 'Invalid email address',
+      };
+    }
+
     console.log(`Sending email verification link to ${email}`);
     const plunk = getPlunkClient();
 
@@ -547,6 +226,16 @@ export async function sendPasswordResetLink(
   resetUrl: string,
 ): Promise<PlunkResponse> {
   try {
+    // Validate email security
+    const emailValidation = validateEmailSecurity(email);
+    if (!emailValidation.valid) {
+      console.error(`Security validation failed for email ${email}:`, emailValidation.error);
+      return {
+        success: false,
+        error: emailValidation.error || 'Invalid email address',
+      };
+    }
+
     console.log(`Sending password reset link to ${email}`);
     const plunk = getPlunkClient();
 
@@ -632,5 +321,3 @@ export async function trackUserSignup(
     };
   }
 }
-
- 
