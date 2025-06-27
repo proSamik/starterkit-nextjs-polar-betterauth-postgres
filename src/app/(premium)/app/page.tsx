@@ -254,39 +254,13 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">{welcomeInfo.description}</p>
 
         {/* Debug Info - Remove this in production */}
-        <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <div className="flex items-center gap-4 mb-2">
-            <details className="flex-1">
-              <summary className="cursor-pointer text-sm font-medium">
-                🔍 Debug: Customer State
-              </summary>
-              <pre className="mt-2 text-xs overflow-auto">
-                {JSON.stringify(customerState, null, 2)}
-              </pre>
-            </details>
-            <details className="flex-1">
-              <summary className="cursor-pointer text-sm font-medium">
-                🛒 Debug: Lifetime Orders
-              </summary>
-              <pre className="mt-2 text-xs overflow-auto">
-                {JSON.stringify(lifetimeOrders, null, 2)}
-              </pre>
-            </details>
-            <button
-              onClick={fetchCustomerState}
-              disabled={isLoading}
-              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isLoading ? "Loading..." : "Refresh"}
-            </button>
-          </div>
-          <div className="mt-2 text-xs text-gray-600">
-            <p>Has Lifetime Deal: {hasLifetimeDeal ? "✅ Yes" : "❌ No"}</p>
-            <p>
-              Has Active Subscription:{" "}
-              {hasActiveSubscription ? "✅ Yes" : "❌ No"}
-            </p>
-            <p>Lifetime Orders Count: {lifetimeOrders.length}</p>
+        <div className="mt-4 p-4 bg-muted rounded-lg">
+          <h4 className="font-semibold mb-2 text-foreground">Debug Information</h4>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div>Session User ID: {session?.user?.id || "N/A"}</div>
+            <div>Customer State: {customerState ? "Loaded" : "Not loaded"}</div>
+            <div>Orders Count: {lifetimeOrders.length}</div>
+            <div>Active Subscriptions: {customerState?.activeSubscriptions?.length || 0}</div>
           </div>
         </div>
       </div>
@@ -334,7 +308,7 @@ export default function DashboardPage() {
             ) : (
               <Badge
                 variant="secondary"
-                className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                className="bg-muted text-muted-foreground"
               >
                 No Active Subscription
               </Badge>
@@ -376,7 +350,7 @@ export default function DashboardPage() {
             ) : (
               <Badge
                 variant="secondary"
-                className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                className="bg-muted text-muted-foreground"
               >
                 No Lifetime Access
               </Badge>
