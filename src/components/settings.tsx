@@ -16,12 +16,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "u
 import { Separator } from "ui/separator";
 import { Settings as SettingsIcon, Bell, Shield, Palette, Globe } from "lucide-react";
 import { BASE_THEMES } from "lib/const";
+import { usePreferences, useStoreActions } from "../app/store";
+import { toast } from "sonner";
 
 /**
  * Settings component for app preferences and configuration
  */
 export function Settings() {
   const { theme, setTheme } = useTheme();
+  const preferences = usePreferences();
+  const { updatePreferences } = useStoreActions();
+
+  /**
+   * Handle preference updates with toast notifications
+   */
+  const handlePreferenceChange = (key: string, value: any) => {
+    updatePreferences({ [key]: value });
+    toast.success(`${key.charAt(0).toUpperCase() + key.slice(1)} updated successfully`);
+  };
 
   return (
     <div className="space-y-6">
@@ -117,7 +129,10 @@ export function Settings() {
                 Show notifications on your desktop
               </div>
             </div>
-            <Switch defaultChecked />
+            <Switch 
+              checked={preferences.emailNotifications}
+              onCheckedChange={(checked) => handlePreferenceChange('emailNotifications', checked)}
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -127,7 +142,10 @@ export function Settings() {
                 Receive notifications via email
               </div>
             </div>
-            <Switch />
+            <Switch 
+              checked={preferences.marketingEmails}
+              onCheckedChange={(checked) => handlePreferenceChange('marketingEmails', checked)}
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -161,7 +179,10 @@ export function Settings() {
                 Choose your preferred language
               </div>
             </div>
-            <Select defaultValue="en">
+            <Select 
+              value={preferences.language} 
+              onValueChange={(value) => handlePreferenceChange('language', value)}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
