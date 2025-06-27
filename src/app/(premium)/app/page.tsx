@@ -1,7 +1,7 @@
 "use client";
 
-import { authClient } from "auth/client";
-import { useEffect, useState, Suspense} from "react";
+import { authClient, enhancedAuthClient } from "auth/client";
+import { useEffect, useState, Suspense } from "react";
 import {
   Card,
   CardContent,
@@ -53,7 +53,7 @@ type Order = {
   };
 };
 
-type UserTier = 'free' | 'monthly' | 'yearly' | 'lifetime';
+type UserTier = "free" | "monthly" | "yearly" | "lifetime";
 
 /**
  * Loading skeleton for dashboard content
@@ -86,10 +86,12 @@ function DashboardSkeleton() {
  * Hook to fetch customer state and determine user tier
  */
 function useCustomerState() {
-  const [customerState, setCustomerState] = useState<CustomerState | null>(null);
+  const [customerState, setCustomerState] = useState<CustomerState | null>(
+    null,
+  );
   const [lifetimeOrders, setLifetimeOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userTier, setUserTier] = useState<UserTier>('free');
+  const [userTier, setUserTier] = useState<UserTier>("free");
   const { data: session } = authClient.useSession();
 
   const fetchCustomerState = async () => {
@@ -102,16 +104,14 @@ function useCustomerState() {
         const stateResult = await authClient.customer.state();
         newCustomerState = stateResult?.data || null;
         setCustomerState(newCustomerState);
-        
-      } catch (error) {
-        
+      } catch (_error) {
         setCustomerState(null);
       }
 
-      // Step 2: Then fetch lifetime orders (if needed)
+      // Step 2: Then fetch lifetime orders (if needed) with automatic fallback
       let newLifetimeOrders: any[] = [];
       try {
-        const ordersResult = await authClient.customer.orders.list({
+        const ordersResult = await enhancedAuthClient.customer.orders.list({
           query: {
             page: 1,
             limit: 10,
@@ -140,51 +140,50 @@ function useCustomerState() {
 
           setLifetimeOrders(mappedOrders);
           newLifetimeOrders = rawOrders;
-          
         } else {
           setLifetimeOrders([]);
         }
-      } catch (error) {
-        
+      } catch (_error) {
         setLifetimeOrders([]);
       }
 
       // Step 3: Determine user tier based on the fetched data
-      const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_POLAR_MONTHLY_PRODUCT_ID;
+      const MONTHLY_PRODUCT_ID =
+        process.env.NEXT_PUBLIC_POLAR_MONTHLY_PRODUCT_ID;
       const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID;
-
-      
 
       // Check for lifetime orders first (highest priority)
       if (newLifetimeOrders.length > 0) {
-        setUserTier('lifetime');
+        setUserTier("lifetime");
       } else if (newCustomerState?.activeSubscriptions) {
         // Check for active subscriptions
         const activeSubscription = newCustomerState.activeSubscriptions.find(
           (sub: any) => {
-            
-            return sub.status === "active" && 
-              (sub.productId === MONTHLY_PRODUCT_ID || sub.productId === YEARLY_PRODUCT_ID);
-          }
+            return (
+              sub.status === "active" &&
+              (sub.productId === MONTHLY_PRODUCT_ID ||
+                sub.productId === YEARLY_PRODUCT_ID)
+            );
+          },
         );
-        
+
         if (activeSubscription) {
-          const tier = activeSubscription.productId === MONTHLY_PRODUCT_ID ? 'monthly' : 'yearly';
-          
+          const tier =
+            activeSubscription.productId === MONTHLY_PRODUCT_ID
+              ? "monthly"
+              : "yearly";
+
           setUserTier(tier);
         } else {
-          
-          setUserTier('free');
+          setUserTier("free");
         }
       } else {
-        
-        setUserTier('free');
+        setUserTier("free");
       }
     } catch (_error: any) {
-      
       setCustomerState(null);
       setLifetimeOrders([]);
-      setUserTier('free');
+      setUserTier("free");
     } finally {
       setIsLoading(false);
     }
@@ -202,7 +201,7 @@ function useCustomerState() {
     lifetimeOrders,
     isLoading,
     userTier,
-    refetch: fetchCustomerState
+    refetch: fetchCustomerState,
   };
 }
 
@@ -210,7 +209,8 @@ function useCustomerState() {
  * Dashboard content component that handles the data fetching
  */
 function DashboardContent() {
-  const { customerState, lifetimeOrders, isLoading, userTier, refetch } = useCustomerState();
+  const { customerState, lifetimeOrders, isLoading, userTier, refetch } =
+    useCustomerState();
   const { data: session } = authClient.useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -256,7 +256,8 @@ function DashboardContent() {
       free: "Welcome to your dashboard! Upgrade to unlock premium features.",
       monthly: "Welcome back, Premium Member! Enjoy your enhanced features.",
       yearly: "Welcome back, Yearly Subscriber! You're getting great value.",
-      lifetime: "Welcome back, Lifetime Member! You have access to everything, forever.",
+      lifetime:
+        "Welcome back, Lifetime Member! You have access to everything, forever.",
     };
     return tierMessages[tier];
   };
@@ -266,7 +267,7 @@ function DashboardContent() {
    */
   const getTierSpecificContent = () => {
     const tier = getUserTier();
-    
+
     const tierContent = {
       free: {
         title: "Free Plan",
@@ -280,54 +281,98 @@ function DashboardContent() {
           { name: "Email Support", enabled: false, limit: "Not included" },
           { name: "Premium Features", enabled: false, limit: "Locked" },
         ],
-        description: "Perfect for getting started with basic features and learning the platform.",
-        upgradeMessage: "Upgrade to unlock premium features, remove limits, and get priority support!"
+        description:
+          "Perfect for getting started with basic features and learning the platform.",
+        upgradeMessage:
+          "Upgrade to unlock premium features, remove limits, and get priority support!",
       },
       monthly: {
         title: "Monthly Plan",
         icon: <Zap className="h-5 w-5 text-primary" />,
         badge: { text: "Monthly", variant: "default" as const },
         features: [
-          { name: "Payment Integration", enabled: true, limit: "Full Polar.sh" },
-          { name: "Premium UI Components", enabled: true, limit: "All components" },
+          {
+            name: "Payment Integration",
+            enabled: true,
+            limit: "Full Polar.sh",
+          },
+          {
+            name: "Premium UI Components",
+            enabled: true,
+            limit: "All components",
+          },
           { name: "Email Automation", enabled: true, limit: "500/month" },
           { name: "Projects", enabled: true, limit: "10 max" },
           { name: "Priority Support", enabled: true, limit: "Email support" },
           { name: "Advanced Analytics", enabled: false, limit: "Yearly+ only" },
         ],
-        description: "Great for active development with enhanced features and higher limits.",
-        upgradeMessage: "Upgrade to yearly for better value and advanced features!"
+        description:
+          "Great for active development with enhanced features and higher limits.",
+        upgradeMessage:
+          "Upgrade to yearly for better value and advanced features!",
       },
       yearly: {
         title: "Yearly Plan",
         icon: <Calendar className="h-5 w-5 text-secondary-foreground" />,
         badge: { text: "Yearly", variant: "default" as const },
         features: [
-          { name: "Advanced Analytics", enabled: true, limit: "Full dashboard" },
+          {
+            name: "Advanced Analytics",
+            enabled: true,
+            limit: "Full dashboard",
+          },
           { name: "Priority Support", enabled: true, limit: "Email + Chat" },
-          { name: "Team Collaboration", enabled: true, limit: "Up to 5 members" },
+          {
+            name: "Team Collaboration",
+            enabled: true,
+            limit: "Up to 5 members",
+          },
           { name: "Projects", enabled: true, limit: "Unlimited" },
-          { name: "White-label Options", enabled: false, limit: "Lifetime only" },
+          {
+            name: "White-label Options",
+            enabled: false,
+            limit: "Lifetime only",
+          },
           { name: "Custom Deployment", enabled: false, limit: "Lifetime only" },
         ],
-        description: "Perfect for serious projects with advanced features and team collaboration.",
-        upgradeMessage: "Consider lifetime for the ultimate experience with white-label options!"
+        description:
+          "Perfect for serious projects with advanced features and team collaboration.",
+        upgradeMessage:
+          "Consider lifetime for the ultimate experience with white-label options!",
       },
       lifetime: {
         title: "Lifetime Access",
         icon: <Crown className="h-5 w-5 text-accent-foreground" />,
         badge: { text: "Lifetime", variant: "default" as const },
         features: [
-          { name: "Multi-tenant Support", enabled: true, limit: "Unlimited tenants" },
-          { name: "White-label Solution", enabled: true, limit: "Full customization" },
-          { name: "Custom Deployment", enabled: true, limit: "On-premise option" },
-          { name: "Lifetime Updates", enabled: true, limit: "Forever included" },
+          {
+            name: "Multi-tenant Support",
+            enabled: true,
+            limit: "Unlimited tenants",
+          },
+          {
+            name: "White-label Solution",
+            enabled: true,
+            limit: "Full customization",
+          },
+          {
+            name: "Custom Deployment",
+            enabled: true,
+            limit: "On-premise option",
+          },
+          {
+            name: "Lifetime Updates",
+            enabled: true,
+            limit: "Forever included",
+          },
           { name: "Premium Support", enabled: true, limit: "Priority line" },
           { name: "Early Access", enabled: true, limit: "Beta features" },
         ],
-        description: "The ultimate package with all features, forever. Perfect for enterprises and power users.",
-        upgradeMessage: "You have lifetime access to everything! Enjoy all premium features forever."
-      }
+        description:
+          "The ultimate package with all features, forever. Perfect for enterprises and power users.",
+        upgradeMessage:
+          "You have lifetime access to everything! Enjoy all premium features forever.",
+      },
     };
 
     return tierContent[tier];
@@ -346,14 +391,15 @@ function DashboardContent() {
       <div className="space-y-2">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <Badge variant={tierContent.badge.variant} className="flex items-center gap-1">
+          <Badge
+            variant={tierContent.badge.variant}
+            className="flex items-center gap-1"
+          >
             {tierContent.icon}
             {tierContent.badge.text}
           </Badge>
         </div>
-        <p className="text-muted-foreground">
-          {getWelcomeMessage()}
-        </p>
+        <p className="text-muted-foreground">{getWelcomeMessage()}</p>
       </div>
 
       {/* Main Content */}
@@ -370,95 +416,119 @@ function DashboardContent() {
                 {tierContent.badge.text}
               </Badge>
             </div>
-            <CardDescription>
-              {tierContent.description}
-            </CardDescription>
+            <CardDescription>{tierContent.description}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {/* Features Grid */}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {tierContent.features.map((feature) => (
-                                     <div
-                     key={feature.name}
-                     className={`flex items-center justify-between p-3 rounded-lg border ${
-                       feature.enabled
-                         ? "bg-muted/50 border-border"
-                         : "bg-muted/20 border-border"
-                     }`}
-                   >
-                     <div className="space-y-1">
-                       <p className={`text-sm font-medium ${
-                         feature.enabled ? "text-foreground" : "text-muted-foreground"
-                       }`}>
-                         {feature.name}
-                       </p>
-                       <p className={`text-xs ${
-                         feature.enabled ? "text-muted-foreground" : "text-muted-foreground/70"
-                       }`}>
-                         {feature.limit}
-                       </p>
-                     </div>
-                     <div className={`w-2 h-2 rounded-full ${
-                       feature.enabled ? "bg-primary" : "bg-muted-foreground/50"
-                     }`} />
-                   </div>
+                  <div
+                    key={feature.name}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      feature.enabled
+                        ? "bg-muted/50 border-border"
+                        : "bg-muted/20 border-border"
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <p
+                        className={`text-sm font-medium ${
+                          feature.enabled
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {feature.name}
+                      </p>
+                      <p
+                        className={`text-xs ${
+                          feature.enabled
+                            ? "text-muted-foreground"
+                            : "text-muted-foreground/70"
+                        }`}
+                      >
+                        {feature.limit}
+                      </p>
+                    </div>
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        feature.enabled
+                          ? "bg-primary"
+                          : "bg-muted-foreground/50"
+                      }`}
+                    />
+                  </div>
                 ))}
               </div>
 
-                             {/* Upgrade Message */}
-               {tier !== 'lifetime' && (
-                 <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-                   <p className="text-sm text-accent-foreground">
-                     💡 {tierContent.upgradeMessage}
-                   </p>
-                 </div>
-               )}
+              {/* Upgrade Message */}
+              {tier !== "lifetime" && (
+                <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                  <p className="text-sm text-accent-foreground">
+                    💡 {tierContent.upgradeMessage}
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Active Subscription Details */}
-        {customerState?.activeSubscriptions && customerState.activeSubscriptions.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Subscription</CardTitle>
-              <CardDescription>Your current subscription details</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {customerState.activeSubscriptions.map((subscription) => (
-                  <div key={subscription.id} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Amount</span>
-                      <span className="text-sm">
-                        ${(subscription.amount / 100).toFixed(2)} {subscription.currency.toUpperCase()}
-                      </span>
+        {customerState?.activeSubscriptions &&
+          customerState.activeSubscriptions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Subscription</CardTitle>
+                <CardDescription>
+                  Your current subscription details
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {customerState.activeSubscriptions.map((subscription) => (
+                    <div key={subscription.id} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Amount</span>
+                        <span className="text-sm">
+                          ${(subscription.amount / 100).toFixed(2)}{" "}
+                          {subscription.currency.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Billing</span>
+                        <span className="text-sm capitalize">
+                          {subscription.recurringInterval}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Status</span>
+                        <Badge
+                          variant={
+                            subscription.status === "active"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {subscription.status}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">
+                          Next Billing
+                        </span>
+                        <span className="text-sm">
+                          {new Date(
+                            subscription.currentPeriodEnd,
+                          ).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Billing</span>
-                      <span className="text-sm capitalize">
-                        {subscription.recurringInterval}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Status</span>
-                      <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
-                        {subscription.status}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Next Billing</span>
-                      <span className="text-sm">
-                        {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Lifetime Purchases */}
         {lifetimeOrders.length > 0 && (
@@ -474,7 +544,8 @@ function DashboardContent() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Purchase</span>
                       <span className="text-sm">
-                        ${(order.amount / 100).toFixed(2)} {order.currency.toUpperCase()}
+                        ${(order.amount / 100).toFixed(2)}{" "}
+                        {order.currency.toUpperCase()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -504,26 +575,38 @@ function DashboardContent() {
             <CardDescription>Common tasks and shortcuts</CardDescription>
           </CardHeader>
           <CardContent>
-                         <div className="space-y-3">
-               <button className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/10 transition-colors">
-                 <div className="font-medium text-sm text-foreground">View Analytics</div>
-                 <div className="text-xs text-muted-foreground">
-                   {tier === 'free' ? 'Upgrade to access' : 'Track your progress'}
-                 </div>
-               </button>
-               <button className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/10 transition-colors">
-                 <div className="font-medium text-sm text-foreground">Manage Projects</div>
-                 <div className="text-xs text-muted-foreground">
-                   {tierContent.features.find(f => f.name === 'Projects')?.limit}
-                 </div>
-               </button>
-               <button className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/10 transition-colors">
-                 <div className="font-medium text-sm text-foreground">Contact Support</div>
-                 <div className="text-xs text-muted-foreground">
-                   {tierContent.features.find(f => f.name.includes('Support'))?.limit || 'Community only'}
-                 </div>
-               </button>
-             </div>
+            <div className="space-y-3">
+              <button className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/10 transition-colors">
+                <div className="font-medium text-sm text-foreground">
+                  View Analytics
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {tier === "free"
+                    ? "Upgrade to access"
+                    : "Track your progress"}
+                </div>
+              </button>
+              <button className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/10 transition-colors">
+                <div className="font-medium text-sm text-foreground">
+                  Manage Projects
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {
+                    tierContent.features.find((f) => f.name === "Projects")
+                      ?.limit
+                  }
+                </div>
+              </button>
+              <button className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/10 transition-colors">
+                <div className="font-medium text-sm text-foreground">
+                  Contact Support
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {tierContent.features.find((f) => f.name.includes("Support"))
+                    ?.limit || "Community only"}
+                </div>
+              </button>
+            </div>
           </CardContent>
         </Card>
       </div>
