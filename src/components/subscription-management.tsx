@@ -386,83 +386,85 @@ export function SubscriptionManagement({ currentTier, onBack }: SubscriptionMana
             </div>
           </div>
 
-          {/* Subscription Actions */}
+          {/* Subscription Management */}
           {hasActiveSubscription() && (
-            <Card className="border-destructive/20 bg-destructive/5">
-              <CardHeader>
-                <CardTitle className="text-destructive flex items-center gap-2">
-                  <X className="h-5 w-5" />
-                  Cancel Subscription
-                </CardTitle>
-                <CardDescription>
-                  Cancel your subscription, update billing, or get support
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Cancel Subscription Section */}
-                <div className="p-4 border border-destructive/30 rounded-lg bg-destructive/10">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-destructive mb-2">Cancel Your Subscription</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        You can cancel your subscription at any time. You&apos;ll continue to have access until the end of your billing period.
+            <div className="space-y-6">
+              {/* Cancel Subscription Section */}
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-card-foreground flex items-center gap-2">
+                    <X className="h-5 w-5 text-destructive" />
+                    Cancel Subscription
+                  </CardTitle>
+                  <CardDescription>
+                    You can cancel your subscription at any time. You&apos;ll continue to have access until the end of your billing period.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                    variant="destructive"
+                    size="lg"
+                    className="gap-2"
+                  >
+                    {portalLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
+                    Cancel Subscription
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Other Actions */}
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-card-foreground">Billing & Support</CardTitle>
+                  <CardDescription>
+                    Manage your billing settings or get help
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-card-foreground">Manage Billing</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Update payment methods, view invoices, or change billing cycle.
                       </p>
                       <Button
                         onClick={handleManageSubscription}
                         disabled={portalLoading}
-                        variant="destructive"
-                        size="lg"
-                        className="gap-2"
+                        variant="outline"
+                        className="gap-2 w-full md:w-auto"
                       >
                         {portalLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <X className="h-4 w-4" />
+                          <CreditCard className="h-4 w-4" />
                         )}
-                        Cancel Subscription
+                        Customer Portal
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-card-foreground">Need Support?</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Have questions about your subscription or need help with billing?
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="gap-2 w-full md:w-auto"
+                        onClick={() => window.open("mailto:support@example.com", "_blank")}
+                      >
+                        Contact Support
                       </Button>
                     </div>
                   </div>
-                </div>
-
-                {/* Other Actions */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-card-foreground">Manage Billing</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Update payment methods, view invoices, or change billing cycle.
-                    </p>
-                    <Button
-                      onClick={handleManageSubscription}
-                      disabled={portalLoading}
-                      variant="outline"
-                      className="gap-2 w-full md:w-auto"
-                    >
-                      {portalLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <CreditCard className="h-4 w-4" />
-                      )}
-                      Customer Portal
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-card-foreground">Need Support?</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Have questions about your subscription or need help with billing?
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="gap-2 w-full md:w-auto"
-                      onClick={() => window.open("mailto:support@example.com", "_blank")}
-                    >
-                      Contact Support
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Footer Note */}
