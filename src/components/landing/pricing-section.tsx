@@ -15,60 +15,77 @@ interface PricingTier {
   cta: string;
   highlighted?: boolean;
   badge?: string;
-  planSlug?: "Free" | "yearly" | "lifetime";
+  planSlug?: "free" | "monthly" | "yearly" | "lifetime";
 }
 
 const pricingTiers: PricingTier[] = [
   {
-    name: "Open Source",
+    name: "Free",
     price: "Free",
     description: "Perfect for personal projects and learning",
     features: [
       "Complete source code access",
       "Basic authentication setup",
-      "Database schema & migrations",
+      "Database schema & migrations", 
       "Tailwind CSS components",
       "Docker configuration",
       "MIT License",
     ],
     cta: "Get Started Free",
-    planSlug: "Free",
+    planSlug: "free",
   },
   {
-    name: "Pro",
-    price: "$49",
-    description: "Best for professional developers and small teams",
+    name: "Monthly",
+    price: "$19",
+    description: "Best for trying premium features",
     features: [
-      "Everything in Open Source",
+      "Everything in Free",
       "Polar.sh payment integration",
       "Advanced auth configurations",
-      "Premium UI components",
+      "Premium UI components", 
       "Email templates & automation",
-      "Priority support & updates",
+      "Priority support",
       "Commercial license",
     ],
-    cta: "Get Pro Version",
-    highlighted: true,
-    badge: "Most Popular",
-    planSlug: "lifetime",
+    cta: "Start Monthly Plan",
+    planSlug: "monthly",
   },
   {
-    name: "Enterprise",
-    price: "$199",
-    description: "For teams and production applications",
+    name: "Yearly",
+    price: "$180",
+    originalPrice: "$228",
+    description: "Best value for ongoing projects",
     features: [
-      "Everything in Pro",
+      "Everything in Monthly",
+      "20% yearly discount",
+      "Extended support",
+      "Early access to new features",
+      "Advanced documentation",
+      "Priority bug fixes",
+      "Team collaboration tools",
+    ],
+    cta: "Get Yearly Plan",
+    highlighted: true,
+    badge: "Best Value",
+    planSlug: "yearly",
+  },
+  {
+    name: "Lifetime",
+    price: "$299",
+    description: "One-time payment, lifetime access",
+    features: [
+      "Everything in Yearly",
+      "Lifetime access to all features",
+      "Lifetime updates",
       "Multi-tenant architecture",
       "Advanced security features",
       "Custom deployment scripts",
-      "Team collaboration tools",
       "White-label options",
       "1-on-1 setup consultation",
-      "Lifetime updates",
     ],
-    cta: "Get Enterprise",
-    badge: "Best Value",
-    planSlug: "yearly",
+    cta: "Get Lifetime Access",
+    badge: "One-time Payment",
+    planSlug: "lifetime",
   },
 ];
 
@@ -146,9 +163,19 @@ export function PricingSection() {
   }, [searchParams, session]);
 
   const handleCheckout = async (
-    planSlug: "Free" | "yearly" | "lifetime",
+    planSlug: "free" | "monthly" | "yearly" | "lifetime",
   ) => {
-    // Check if user is authenticated
+    // Handle free plan - just redirect to dashboard
+    if (planSlug === "free") {
+      if (!session?.user) {
+        window.location.href = "/sign-in";
+        return;
+      }
+      window.location.href = "/app";
+      return;
+    }
+
+    // Check if user is authenticated for paid plans
     if (!session?.user) {
       toast.error("Please sign in to purchase a plan");
       return;
@@ -177,11 +204,19 @@ export function PricingSection() {
         return;
       }
 
-      if (hasActiveSubscription && planSlug !== "lifetime") {
+      // Prevent downgrading or duplicate subscriptions
+      if (hasActiveSubscription && (planSlug === "monthly" || planSlug === "yearly")) {
         toast.info(
           "You already have an active subscription. You can manage it in your dashboard.",
         );
         return;
+      }
+      
+      // Allow upgrading to lifetime even with existing subscription
+      if (hasActiveSubscription && planSlug === "lifetime") {
+        toast.info(
+          "Upgrading to lifetime will replace your current subscription.",
+        );
       }
     }
 
@@ -238,8 +273,41 @@ export function PricingSection() {
         return { disabled: true, text: "You have Lifetime Access" };
       }
 
-      if (hasActiveSubscription && tier.planSlug !== "lifetime") {
-        return { disabled: true, text: "Currently Active" };
+      // Handle different subscription states
+      if (hasActiveSubscription) {
+        // Check which specific subscription is active
+        const activeMonthlySubscription = customerState?.activeSubscriptions?.find(
+          (sub: any) => sub.status === "active" && sub.productId === MONTHLY_PRODUCT_ID
+        );
+        const activeYearlySubscription = customerState?.activeSubscriptions?.find(
+          (sub: any) => sub.status === "active" && sub.productId === YEARLY_PRODUCT_ID
+        );
+
+        // Show "Currently Active" only for the actual active subscription
+        if (tier.planSlug === "monthly" && activeMonthlySubscription) {
+          return { disabled: true, text: "Currently Active" };
+        }
+        if (tier.planSlug === "yearly" && activeYearlySubscription) {
+          return { disabled: true, text: "Currently Active" };
+        }
+        
+        // For non-active subscriptions, show upgrade options
+        if (tier.planSlug === "monthly" && activeYearlySubscription) {
+          return { disabled: true, text: "Downgrade Not Allowed" };
+        }
+        if (tier.planSlug === "yearly" && activeMonthlySubscription) {
+          return { disabled: false, text: "Upgrade to Yearly" };
+        }
+        
+        // Allow lifetime upgrade from any subscription
+        if (tier.planSlug === "lifetime") {
+          return { disabled: false, text: "Upgrade to Lifetime" };
+        }
+      }
+      
+      // Free plan is always available
+      if (tier.planSlug === "free") {
+        return { disabled: false, text: session?.user ? "Go to Dashboard" : "Sign In to Start" };
       }
     }
 
@@ -268,7 +336,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {pricingTiers.map((tier, _index) => {
             const buttonState = getButtonState(tier);
 
@@ -302,11 +370,14 @@ export function PricingSection() {
                     <span className="text-4xl font-bold text-gray-900">
                       {tier.price}
                     </span>
-                    {tier.name === "Pro" && (
-                      <span className="text-gray-600 ml-1"> one-time</span>
+                    {tier.name === "Monthly" && (
+                      <span className="text-gray-600 ml-1">/month</span>
                     )}
-                    {tier.name === "Enterprise" && (
-                      <span className="text-gray-600 ml-1"> Lifetime</span>
+                    {tier.name === "Yearly" && (
+                      <span className="text-gray-600 ml-1">/year</span>
+                    )}
+                    {tier.name === "Lifetime" && (
+                      <span className="text-gray-600 ml-1"> one-time</span>
                     )}
                   </div>
                   <p className="text-gray-600">{tier.description}</p>
@@ -344,7 +415,7 @@ export function PricingSection() {
                     <button
                       className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
                       onClick={() => {
-                        if (tier.name === "Open Source") {
+                        if (tier.name === "Free") {
                           window.open("https://github.com/cgoinglove/nextjs-polar-starter-kit", "_blank");
                         } else {
                           toast.info("Contact sales for enterprise pricing");
@@ -355,11 +426,13 @@ export function PricingSection() {
                     </button>
                   )}
                   <p className="text-sm text-gray-500 mt-3">
-                    {tier.name === "Open Source"
+                    {tier.name === "Free"
                       ? "MIT License, no restrictions"
-                      : tier.name === "Pro"
-                        ? "One-time payment, lifetime updates"
-                        : "One-time payment, enterprise support"}
+                      : tier.name === "Monthly"
+                        ? "Cancel anytime, no long-term commitment"
+                        : tier.name === "Yearly"
+                        ? "Annual billing, 20% savings"
+                        : "One-time payment, lifetime access"}
                   </p>
                 </div>
               </div>
