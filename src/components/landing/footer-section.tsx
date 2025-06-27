@@ -39,25 +39,25 @@ export function FooterSection() {
             <div className="flex space-x-4">
               <a
                 href="https://x.com/prosamik"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
               >
                 <FaXTwitter className="h-5 w-5" />
-              </a>
+              </a>  
               <a
                 href="https://github.com/prosamik"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
               >
                 <FaGithub className="h-5 w-5" />
               </a>
               <a
                 href="https://linkedin.com/in/prosamik"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
               >
                 <FaLinkedin className="h-5 w-5" />
               </a>
               <a
                 href="mailto:dev.samikc@gmail.com"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
               >
                 <MdMail className="h-5 w-5" />
               </a>
@@ -146,15 +146,15 @@ export function FooterSection() {
             <span className="text-white text-xs">👋</span>
           </div>
           Hey Curious 👋 I&apos;m{" "}
-          <a href="https://prosamik.com" className="text-white underline mx-1">
+          <a href="https://prosamik.com" className="text-gray-500 underline mx-1 hover:text-gray-900">
             Samik
           </a>
           , the creator of this Next.js starter kit. You can follow my work on
           <a
-            href="https://x.com/prosamik"
-            className="text-white underline ml-1"
+            href="https://youtube.com/@prosamik"
+            className="text-gray-500 underline ml-1 hover:text-gray-900"
           >
-            Twitter.
+            YouTube
           </a>
         </div>
       </div>
