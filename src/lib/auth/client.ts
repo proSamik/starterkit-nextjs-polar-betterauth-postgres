@@ -20,10 +20,15 @@ export const authClient = createAuthClient({
         return;
       }
       
-      // Filter out the specific ORDERS_LIST_FAILED error
-      if (e.error.code === "ORDERS_LIST_FAILED" || e.error.message?.includes("Orders list failed")) {
+      // Filter out specific errors that shouldn't show toasts
+      if (
+        e.error.code === "ORDERS_LIST_FAILED" || 
+        e.error.message?.includes("Orders list failed") ||
+        e.error.code === "CUSTOMER_PORTAL_CREATION_FAILED" ||
+        e.error.message?.includes("Customer portal creation failed")
+      ) {
         // Log for debugging but don't show toast to user
-        console.log("ORDERS_LIST_FAILED error filtered out:", e.error);
+        console.log("Filtered error (no toast):", e.error);
         return;
       }
       
