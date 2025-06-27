@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,20 +15,24 @@ import {
 } from "@/components/ui/card";
 import { useObjectState } from "@/hooks/use-object-state";
 import { useResendCooldown } from "@/hooks/use-resend-cooldown";
-import { Loader } from "lucide-react";
+import { Loader, Mail } from "lucide-react";
 import { safe } from "ts-safe";
 import { authClient } from "auth/client";
 import { toast } from "sonner";
 
 /**
  * Forgot Password Page Component
- * Allows users to request a password reset OTP and reset their password
+ * Allows users to request a password reset and reset their password
  */
 export default function ForgotPasswordPage() {
-  const [step, setStep] = useState<"email" | "otp" | "password">("email");
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  
+  const [step, setStep] = useState<"email" | "success" | "reset">(
+    token ? "reset" : "email"
+  );
   const [state, setState] = useObjectState({
     email: "",
-    otp: "",
     password: "",
     confirmPassword: "",
     loading: false,
@@ -37,9 +42,9 @@ export default function ForgotPasswordPage() {
     useResendCooldown();
 
   /**
-   * Handle sending OTP to user's email
+   * Handle requesting password reset
    */
-  const handleSendOTP = () => {
+  const handleRequestReset = () => {
     if (!state.email) {
       toast.error("Please enter your email address");
       return;
@@ -48,20 +53,20 @@ export default function ForgotPasswordPage() {
     setState({ loading: true });
 
     safe(() =>
-      authClient.emailOtp.sendVerificationOtp(
+      authClient.requestPasswordReset(
         {
           email: state.email,
-          type: "forget-password",
+          redirectTo: "/forgot-password", // Redirect back to this page with token
         },
         {
           onError(ctx) {
             toast.error(
-              ctx.error.message || "Failed to send verification code",
+              ctx.error.message || "Failed to send password reset email",
             );
           },
           onSuccess() {
-            toast.success("Verification code sent to your email!");
-            setStep("otp");
+            toast.success("Password reset email sent!");
+            setStep("success");
             startCooldown(); // Start the 2-minute cooldown
           },
         },
@@ -72,27 +77,27 @@ export default function ForgotPasswordPage() {
   };
 
   /**
-   * Handle resending OTP
+   * Handle resending password reset email
    */
-  const handleResendOTP = () => {
+  const handleResendEmail = () => {
     if (isOnCooldown) return;
 
     setState({ loading: true });
 
     safe(() =>
-      authClient.emailOtp.sendVerificationOtp(
+      authClient.requestPasswordReset(
         {
           email: state.email,
-          type: "forget-password",
+          redirectTo: "/forgot-password",
         },
         {
           onError(ctx) {
             toast.error(
-              ctx.error.message || "Failed to resend verification code",
+              ctx.error.message || "Failed to resend password reset email",
             );
           },
           onSuccess() {
-            toast.success("Verification code resent!");
+            toast.success("Password reset email resent!");
             startCooldown(); // Restart the cooldown
           },
         },
@@ -103,14 +108,9 @@ export default function ForgotPasswordPage() {
   };
 
   /**
-   * Handle OTP verification and password reset
+   * Handle password reset with token
    */
   const handleResetPassword = () => {
-    if (!state.otp) {
-      toast.error("Please enter the verification code");
-      return;
-    }
-
     if (!state.password) {
       toast.error("Please enter a new password");
       return;
@@ -126,20 +126,23 @@ export default function ForgotPasswordPage() {
       return;
     }
 
+    if (!token) {
+      toast.error("Invalid or missing reset token");
+      return;
+    }
+
     setState({ loading: true });
 
     safe(() =>
-      authClient.emailOtp.resetPassword(
+      authClient.resetPassword(
         {
-          email: state.email,
-          otp: state.otp,
-          password: state.password,
+          newPassword: state.password,
+          token: token,
         },
         {
           onError(ctx) {
             toast.error(
-              ctx.error.message ||
-                "Invalid verification code or password reset failed",
+              ctx.error.message || "Password reset failed. Please try again.",
             );
           },
           onSuccess() {
@@ -147,7 +150,7 @@ export default function ForgotPasswordPage() {
               "Password reset successfully! You can now sign in with your new password.",
             );
             // Redirect to sign-in page
-            window.location.href = "/sign-in";
+            window.location.href = "/sign-in?message=password-reset";
           },
         },
       ),
@@ -162,14 +165,14 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
             {step === "email" && "Reset your password"}
-            {step === "otp" && "Enter verification code"}
-            {step === "password" && "Set new password"}
+            {step === "success" && "Check your email"}
+            {step === "reset" && "Set new password"}
           </CardTitle>
           <CardDescription>
             {step === "email" &&
-              "Enter your email address and we'll send you a verification code"}
-            {step === "otp" && `We sent a 6-digit code to ${state.email}`}
-            {step === "password" && "Enter your new password"}
+              "Enter your email address and we'll send you a reset link"}
+            {step === "success" && `We sent a reset link to ${state.email}`}
+            {step === "reset" && "Enter your new password"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -183,69 +186,63 @@ export default function ForgotPasswordPage() {
                   placeholder="Enter your email"
                   value={state.email}
                   onChange={(e) => setState({ email: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && handleRequestReset()}
                   disabled={state.loading}
                 />
               </div>
               <Button
-                onClick={handleSendOTP}
+                onClick={handleRequestReset}
                 disabled={state.loading || !state.email}
                 className="w-full"
               >
                 {state.loading && (
                   <Loader className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Send verification code
+                Send reset link
               </Button>
             </>
           )}
 
-          {step === "otp" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="otp" className="text-left">
-                  Enter verification code
-                </Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  placeholder="000000"
-                  value={state.otp}
-                  onChange={(e) =>
-                    setState({
-                      otp: e.target.value.replace(/\D/g, "").slice(0, 6),
-                    })
-                  }
-                  disabled={state.loading}
-                  maxLength={6}
-                  className="text-center text-lg tracking-widest"
-                />
+          {step === "success" && (
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Mail className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="flex justify-between items-center">
-                <button
-                  type="button"
-                  onClick={handleResendOTP}
-                  disabled={isOnCooldown || state.loading}
-                  className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  We&apos;ve sent a password reset link to:
+                </p>
+                <p className="font-medium">{state.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  Click the link in the email to reset your password. The link will expire in 5 minutes.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  onClick={handleResendEmail}
+                  disabled={state.loading || isOnCooldown}
+                  className="w-full"
                 >
+                  {state.loading && (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isOnCooldown
                     ? `Resend in ${formatCooldownTime()}`
-                    : "Didn't receive the code? Resend"}
-                </button>
+                    : "Resend reset link"}
+                </Button>
+                <Button
+                  variant="link"
+                  onClick={() => setStep("email")}
+                  className="w-full text-sm"
+                >
+                  Try a different email
+                </Button>
               </div>
-              <Button
-                onClick={() => setStep("password")}
-                disabled={state.loading || state.otp.length !== 6}
-                className="w-full"
-              >
-                {state.loading && (
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Verify code
-              </Button>
-            </>
+            </div>
           )}
 
-          {step === "password" && (
+          {step === "reset" && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="password">New Password</Label>
@@ -265,21 +262,14 @@ export default function ForgotPasswordPage() {
                   type="password"
                   placeholder="Confirm new password"
                   value={state.confirmPassword}
-                  onChange={(e) =>
-                    setState({ confirmPassword: e.target.value })
-                  }
+                  onChange={(e) => setState({ confirmPassword: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
                   disabled={state.loading}
                 />
               </div>
               <Button
                 onClick={handleResetPassword}
-                disabled={
-                  state.loading ||
-                  !state.password ||
-                  !state.confirmPassword ||
-                  state.password !== state.confirmPassword ||
-                  state.password.length < 8
-                }
+                disabled={state.loading || !state.password || !state.confirmPassword}
                 className="w-full"
               >
                 {state.loading && (
