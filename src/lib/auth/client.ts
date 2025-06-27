@@ -20,6 +20,14 @@ export const authClient = createAuthClient({
         toast.error("Too many requests. Please try again later.");
         return;
       }
+      
+      // Filter out the specific ORDERS_LIST_FAILED error
+      if (e.error.code === "ORDERS_LIST_FAILED" || e.error.message?.includes("Orders list failed")) {
+        // Log for debugging but don't show toast to user
+        console.log("ORDERS_LIST_FAILED error filtered out:", e.error);
+        return;
+      }
+      
       handleErrorWithToast(e.error);
     },
   },
