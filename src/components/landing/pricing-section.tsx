@@ -91,52 +91,75 @@ const pricingTiers: PricingTier[] = [
 
 export function PricingSection() {
   const { data: session, isPending: sessionLoading } = authClient.useSession();
-  const [customerState, setCustomerState] = useState<any>(null);
+  const [customerState, _setCustomerState] = useState<any>(null);
   const [lifetimeOrders, setLifetimeOrders] = useState<any[]>([]);
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
   const fetchCustomerState = async () => {
-    if (!session?.user) return;
+    if (!session?.user) {
+      setIsLoadingState(false);
+      return;
+    }
 
+    setIsLoadingState(true);
     try {
-      setIsLoadingState(true);
-      const response = await authClient.customer.state();
-      const data = (response as any)?.data;
-      setCustomerState(data || null);
+      // Fetch customer state first
+      await authClient.customer.state();
 
-      // Check for one-time purchases (lifetime deals) only if no active subscriptions
-      if (
-        data &&
-        (!data.activeSubscriptions || data.activeSubscriptions.length === 0)
-      ) {
-        try {
-          const ordersResponse = await enhancedAuthClient.customer.orders.list({
-            query: {
-              page: 1,
-              limit: 10,
-              productBillingType: "one_time",
-            },
-          });
-          const ordersData = (ordersResponse as any)?.data?.items || [];
-          setLifetimeOrders(ordersData);
-        } catch (_ordersError: any) {
-          setLifetimeOrders([]);
-        }
-      } else {
-        setLifetimeOrders([]);
+      // Then, attempt to fetch orders
+      const ordersResponse = await enhancedAuthClient.customer.orders.list({
+        query: {
+          page: 1,
+          limit: 10,
+          productBillingType: "one_time",
+        },
+      });
+
+      // Check if the response from the enhanced client is valid.
+      // A successful call will have a `data` object, and the fallback returns `data.result.items`.
+      const ordersData =
+        (ordersResponse as any)?.data?.result?.items ||
+        (ordersResponse as any)?.data?.items;
+
+      // If ordersData is undefined (not null or empty array), it means the call failed silently.
+      if (ordersData === undefined) {
+        console.warn(
+          "Enhanced client did not return a valid data structure, triggering manual fallback.",
+        );
+        throw new Error(
+          "Silent failure from enhanced client: Invalid data structure.",
+        );
       }
-    } catch (error: any) {
-      // If customer doesn't exist in Polar yet, that's expected for existing users
-      if (
-        error?.message?.includes("ResourceNotFound") ||
-        error?.message?.includes("Not found")
-      ) {
-        setCustomerState(null);
-        setLifetimeOrders([]);
-      } else {
-        setCustomerState(null);
+      setLifetimeOrders(ordersData || []);
+    } catch (error) {
+      // This catch block will now be triggered by our manual throw
+      // or by a genuine error from the authClient.
+      console.warn(
+        "Initiating direct fallback for orders due to error:",
+        error,
+      );
+      try {
+        const fallbackRes = await fetch(
+          "/api/polar-fallback/orders?page=1&limit=10&productBillingType=one_time",
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+
+        if (!fallbackRes.ok) {
+          throw new Error(
+            `Fallback API responded with status: ${fallbackRes.status}`,
+          );
+        }
+        const fallbackJson = await fallbackRes.json();
+        const fallbackOrders = fallbackJson?.data?.items || [];
+        setLifetimeOrders(fallbackOrders);
+      } catch (fallbackError) {
+        console.error("Direct fallback for orders also failed:", fallbackError);
         setLifetimeOrders([]);
       }
     } finally {
