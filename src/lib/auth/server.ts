@@ -2,7 +2,7 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { polar, checkout, portal, usage } from "@polar-sh/better-auth";
+import { polar, checkout, portal } from "@polar-sh/better-auth";
 import { emailHarmony } from "better-auth-harmony";
 import { Polar } from "@polar-sh/sdk";
 import { pgDb } from "@/lib/db/pg/db.pg";
@@ -41,28 +41,26 @@ export const auth = betterAuth({
         checkout({
           products: [
             {
-              productId: process.env.POLAR_MONTHLY_PRODUCT_ID || "",
-              slug: "Free",
+              productId: process.env.NEXT_PUBLIC_POLAR_MONTHLY_PRODUCT_ID || "",
+              slug: "monthly",
             },
             {
-              productId: process.env.POLAR_YEARLY_PRODUCT_ID || "",
+              productId: process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID || "",
               slug: "yearly",
             },
             {
-              productId: process.env.POLAR_LIFETIME_PRODUCT_ID || "",
+              productId: process.env.NEXT_PUBLIC_POLAR_LIFETIME_PRODUCT_ID || "",
               slug: "lifetime",
             },
           ],
           successUrl:
-            "/dashboard?checkout_success=true&checkout_id={CHECKOUT_ID}",
+            "/app?checkout_success=true&checkout_id={CHECKOUT_ID}",
           authenticatedUsersOnly: true,
         }),
         portal(),
-        usage(),
       ],
     }),
-
-          emailHarmony(),
+    emailHarmony(),
     ],
     emailVerification: {
       /**
