@@ -30,6 +30,7 @@
       "password": "비밀번호",
       "confirmPassword": "비밀번호 확인",
       "signUp": "계정 생성",
+      "createAccount": "계정 생성",
       "signIn": "로그인",
       "alreadyHaveAccount": "이미 계정이 있으신가요? ",
       "agreeToTerms": "서비스 약관 및 개인정보 보호정책에 동의합니다"

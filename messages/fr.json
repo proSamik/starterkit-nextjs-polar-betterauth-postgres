@@ -20,7 +20,15 @@
       "verifyAndSignIn": "Vérifier et se connecter",
       "backToSignIn": "Retour à la connexion",
       "resendCode": "Renvoyer le code",
-      "oauthClientIdNotSet": "L'ID client {provider} n'est pas configuré"
+      "oauthClientIdNotSet": "L'ID client {provider} n'est pas configuré",
+      "invalidCredentials": "E-mail ou mot de passe invalide",
+      "accountNotFound": "Compte introuvable",
+      "emailAlreadyExists": "Un compte avec cet e-mail existe déjà",
+      "weakPassword": "Le mot de passe est trop faible",
+      "invalidEmail": "Veuillez entrer une adresse e-mail valide",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "signInSuccess": "Connexion réussie",
+      "signOutSuccess": "Déconnexion réussie"
     },
     "SignUp": {
       "title": "Créer un compte",
@@ -30,9 +38,41 @@
       "password": "Mot de passe",
       "confirmPassword": "Confirmer le mot de passe",
       "signUp": "Créer un compte",
+      "createAccount": "Créer un compte",
       "signIn": "Se connecter",
       "alreadyHaveAccount": "Vous avez déjà un compte ? ",
-      "agreeToTerms": "J'accepte les Conditions de Service et la Politique de Confidentialité"
+      "agreeToTerms": "J'accepte les Conditions de Service et la Politique de Confidentialité",
+      "emailVerification": "Vérification de l'e-mail",
+      "verifyEmail": "Vérifier l'e-mail",
+      "checkEmail": "Vérifiez votre e-mail pour un code de vérification",
+      "enterCode": "Entrez le code de vérification",
+      "verifyAndCreateAccount": "Vérifier et créer un compte",
+      "resendCode": "Renvoyer le code de vérification",
+      "backToSignUp": "Retour à l'inscription"
+    },
+    "ForgotPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "description": "Entrez votre e-mail pour recevoir un code de réinitialisation",
+      "email": "E-mail",
+      "sendCode": "Envoyer le code de réinitialisation",
+      "backToSignIn": "Retour à la connexion",
+      "checkEmail": "Vérifiez votre e-mail pour un code de réinitialisation",
+      "enterCode": "Entrez le code de réinitialisation",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "codeExpired": "Le code de réinitialisation a expiré",
+      "invalidCode": "Code de réinitialisation invalide"
+    },
+    "Errors": {
+      "generic": "Quelque chose s'est mal passé. Veuillez réessayer.",
+      "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+      "validation": "Veuillez vérifier vos données et réessayer.",
+      "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
+      "forbidden": "Accès refusé.",
+      "notFound": "La ressource demandée n'a pas été trouvée.",
+      "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+      "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter."
     }
   },
   "Dashboard": {

@@ -30,6 +30,7 @@
       "password": "パスワード",
       "confirmPassword": "パスワード確認",
       "signUp": "アカウント作成",
+      "createAccount": "アカウント作成",
       "signIn": "サインイン",
       "alreadyHaveAccount": "すでにアカウントをお持ちですか？ ",
       "agreeToTerms": "利用規約とプライバシーポリシーに同意します"

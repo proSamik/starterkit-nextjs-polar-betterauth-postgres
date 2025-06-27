@@ -30,6 +30,7 @@
       "password": "密码",
       "confirmPassword": "确认密码",
       "signUp": "创建账户",
+      "createAccount": "创建账户",
       "signIn": "登录",
       "alreadyHaveAccount": "已有账户？ ",
       "agreeToTerms": "我同意服务条款和隐私政策"

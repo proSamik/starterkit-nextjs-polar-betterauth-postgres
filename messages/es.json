@@ -30,6 +30,7 @@
       "password": "Contraseña",
       "confirmPassword": "Confirmar contraseña",
       "signUp": "Crear cuenta",
+      "createAccount": "Crear cuenta",
       "signIn": "Iniciar sesión",
       "alreadyHaveAccount": "¿Ya tienes una cuenta? ",
       "agreeToTerms": "Acepto los Términos de Servicio y la Política de Privacidad"
