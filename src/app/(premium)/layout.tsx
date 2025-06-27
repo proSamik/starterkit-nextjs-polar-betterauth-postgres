@@ -6,6 +6,7 @@ import { authClient } from "auth/client";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Settings } from "@/components/settings";
 import { Profile } from "@/components/profile";
+import { SubscriptionManagement } from "@/components/subscription-management";
 import { NotificationManager } from "@/components/notification-manager";
 
 type UserTier = 'free' | 'monthly' | 'yearly' | 'lifetime';
@@ -111,7 +112,7 @@ function useUserTier() {
 function PremiumLayoutContent({ children }: { children: React.ReactNode }) {
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
   const { userTier, isLoading: isTierLoading } = useUserTier();
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'profile' | 'settings'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'profile' | 'settings' | 'subscription'>('dashboard');
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
@@ -120,7 +121,7 @@ function PremiumLayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [session, isAuthLoading]);
 
-  const handleNavigation = (page: 'dashboard' | 'profile' | 'settings') => {
+  const handleNavigation = (page: 'dashboard' | 'profile' | 'settings' | 'subscription') => {
     setCurrentPage(page);
   };
 
@@ -132,6 +133,8 @@ function PremiumLayoutContent({ children }: { children: React.ReactNode }) {
         return <Profile />;
       case 'settings':
         return <Settings />;
+      case 'subscription':
+        return <SubscriptionManagement currentTier={userTier} onBack={() => setCurrentPage('dashboard')} />;
       default:
         return children;
     }
