@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTheme } from "next-themes";
 import {
   Card,
   CardContent,
@@ -14,11 +15,14 @@ import { Label } from "ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "ui/select";
 import { Separator } from "ui/separator";
 import { Settings as SettingsIcon, Bell, Shield, Palette, Globe } from "lucide-react";
+import { BASE_THEMES } from "lib/const";
 
 /**
  * Settings component for app preferences and configuration
  */
 export function Settings() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -48,17 +52,24 @@ export function Settings() {
             <div className="space-y-0.5">
               <Label className="text-base">Theme</Label>
               <div className="text-sm text-muted-foreground">
-                Choose your preferred color scheme
+                Choose your preferred color theme
               </div>
             </div>
-            <Select defaultValue="system">
-              <SelectTrigger className="w-32">
+            <Select value={theme} onValueChange={setTheme}>
+              <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                {BASE_THEMES.map((baseTheme) => (
+                  <React.Fragment key={baseTheme}>
+                    <SelectItem value={baseTheme}>
+                      {baseTheme.charAt(0).toUpperCase() + baseTheme.slice(1).replace(/-/g, ' ')} (Light)
+                    </SelectItem>
+                    <SelectItem value={`${baseTheme}-dark`}>
+                      {baseTheme.charAt(0).toUpperCase() + baseTheme.slice(1).replace(/-/g, ' ')} (Dark)
+                    </SelectItem>
+                  </React.Fragment>
+                ))}
               </SelectContent>
             </Select>
           </div>
