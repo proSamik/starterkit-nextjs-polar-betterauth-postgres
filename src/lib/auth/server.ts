@@ -8,6 +8,7 @@ import { Polar } from "@polar-sh/sdk";
 import { pgDb } from "@/lib/db/pg/db.pg";
 import { headers } from "next/headers";
 import { toast } from "sonner";
+import { eq, sql } from "drizzle-orm";
 import {
   AccountSchema,
   SessionSchema,
@@ -16,11 +17,11 @@ import {
 } from "lib/db/pg/schema.pg";
 import logger from "logger";
 import {
-  sendPasswordResetOTP,
+  sendPasswordResetLink,
   trackUserSignup,
-  sendEmailVerificationOTP,
+  sendEmailVerificationLink,
 } from "@/lib/plunk/events";
-import { emailOTP } from "better-auth/plugins";
+
 
 // Initialize Polar client
 const polarClient = new Polar({
@@ -59,52 +60,39 @@ export const auth = betterAuth({
         usage(),
       ],
     }),
-    emailOTP({
+
+          emailHarmony(),
+    ],
+    emailVerification: {
       /**
-       * Send OTP via email for different authentication flows
-       * @param email - User's email address
-       * @param otp - 6-digit OTP code
-       * @param type - Type of OTP: "sign-in", "email-verification", or "forget-password"
+       * Send verification email with link for email verification during signup
+       * @param user - User object containing email and other details
+       * @param url - The verification URL containing the token
+       * @param token - The verification token used to complete verification
        */
-      async sendVerificationOTP({ email, otp, type }) {
+      async sendVerificationEmail({ user, url, token }, request) {
         try {
-          let result;
-
-          // Send transactional emails with OTP based on type
-          if (type === "forget-password") {
-            result = await sendPasswordResetOTP(email, otp);
-          } else if (type === "email-verification") {
-            result = await sendEmailVerificationOTP(email, otp);
-          } else {
-            console.warn(`Unknown OTP type: ${type}, skipping email send`);
-            return;
-          }
-
+          // Send verification email using the modern link-based verification
+          const result = await sendEmailVerificationLink(user.email, url);
+          
           // Log result for monitoring
           if (result && !result.success) {
             console.error(
-              `Failed to send ${type} OTP to ${email}:`,
+              `Failed to send email verification to ${user.email}:`,
               result.error,
             );
-            // In production, you might want to send to a fallback email service
-            // or add to a retry queue here
           }
         } catch (error) {
           console.error(
-            `Critical error in sendVerificationOTP for ${type}:`,
+            `Critical error in sendVerificationEmail:`,
             error,
           );
           // Don't throw error to prevent breaking the auth flow
-          // Better-auth expects this function to not throw
         }
       },
-      otpLength: 6, // 6-digit OTP
-      expiresIn: 300, // 5 minutes
-      allowedAttempts: 3, // Maximum 3 attempts before OTP becomes invalid
-      sendVerificationOnSignUp: true, // Send OTP when user signs up
-    }),
-    emailHarmony(),
-  ],
+      sendOnSignUp: true, // Send verification email on signup
+      autoSignInAfterVerification: false, // Don't auto sign in after verification
+    },
   database: drizzleAdapter(pgDb, {
     provider: "pg",
     schema: {
@@ -120,6 +108,33 @@ export const auth = betterAuth({
     maxPasswordLength: 128,
     requireEmailVerification: true, // Require email verification before login
     autoSignIn: false, // Don't auto sign in after signup - user must verify email first
+    /**
+     * Send password reset email with OTP for password reset
+     * @param user - User object containing email and other details
+     * @param url - The reset URL containing the token
+     * @param token - The reset token used to complete password reset
+     */
+    async sendResetPassword({ user, url, token }, request) {
+      try {
+        // Send password reset link using the modern link-based function
+        const result = await sendPasswordResetLink(user.email, url);
+        
+        // Log result for monitoring
+        if (result && !result.success) {
+          console.error(
+            `Failed to send password reset to ${user.email}:`,
+            result.error,
+          );
+        }
+      } catch (error) {
+        console.error(
+          `Critical error in sendResetPassword:`,
+          error,
+        );
+        // Don't throw error to prevent breaking the auth flow
+      }
+    },
+    resetPasswordTokenExpiresIn: 300, // 5 minutes
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
@@ -166,11 +181,38 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           try {
-            // Track user signup event
+            // Track user signup event for all new users (email/password and social)
             await trackUserSignup(user.email, user.name);
           } catch (error) {
             console.error("Error tracking user signup:", error);
             // Don't throw error to prevent breaking user creation
+          }
+        },
+      },
+    },
+    account: {
+      create: {
+        after: async (account) => {
+          try {
+            // Track social signup for new accounts created via OAuth providers
+            if (account.providerId === "github" || account.providerId === "google") {
+              // Use raw SQL to check if this is a new social signup
+              const userResult = await pgDb.select().from(UserSchema).where(eq(UserSchema.id, account.userId)).limit(1);
+              const user = userResult[0];
+              
+              if (user) {
+                // Check if this is the user's first account (indicating a new signup)
+                const accountCount = await pgDb.select({ count: sql`count(*)` }).from(AccountSchema).where(eq(AccountSchema.userId, account.userId));
+                
+                // If this is the only account for this user, it's a new social signup
+                if (accountCount[0]?.count === 1) {
+                  await trackUserSignup(user.email, user.name);
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Error tracking social signup:", error);
+            // Don't throw error to prevent breaking account creation
           }
         },
       },
