@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useObjectState } from "@/hooks/use-object-state";
-
 import { Loader } from "lucide-react";
 import { safe } from "ts-safe";
 import { authClient } from "auth/client";
@@ -24,17 +24,40 @@ import { useTranslations } from "next-intl";
 
 export default function SignInPage() {
   const t = useTranslations("Auth.SignIn");
+  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(false);
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   const [formData, setFormData] = useObjectState({
     email: "",
     password: "",
-    otp: "",
   });
 
+  // Show success message based on query parameters
+  useEffect(() => {
+    const verified = searchParams.get("verified");
+    const message = searchParams.get("message");
+    
+    if (verified === "true") {
+      toast.success("Email verified successfully! You can now sign in.");
+    }
+    if (message === "check-email") {
+      toast.info("Please check your email and click the verification link to activate your account.");
+    }
+    if (message === "password-reset") {
+      toast.success("Password reset successfully! You can now sign in with your new password.");
+    }
+  }, [searchParams]);
+
+  /**
+   * Handle email and password sign in
+   */
   const emailAndPasswordSignIn = () => {
+    if (!formData.email || !formData.password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+
     setLoading(true);
     safe(() =>
       authClient.signIn.email(
@@ -45,19 +68,14 @@ export default function SignInPage() {
         },
         {
           onError(ctx) {
-            // Check if the error is related to email verification
-            if (
-              ctx.error.status === 403 ||
-              ctx.error.message?.includes("email") ||
-              ctx.error.message?.includes("verify")
-            ) {
-              setShowEmailVerification(true);
-              toast.error("Please verify your email address to continue");
-              // Send verification OTP
-              sendVerificationOTP();
+            if (ctx.error.status === 403) {
+              toast.error("Please verify your email address before signing in.");
             } else {
-              toast.error(ctx.error.message || ctx.error.statusText);
+              toast.error(ctx.error.message || "Sign in failed");
             }
+          },
+          onSuccess() {
+            toast.success("Welcome back!");
           },
         },
       ),
@@ -66,48 +84,47 @@ export default function SignInPage() {
       .unwrap();
   };
 
-  const sendVerificationOTP = () => {
+  /**
+   * Handle OAuth sign in
+   */
+  const handleOAuthSignIn = (provider: "github" | "google") => {
     safe(() =>
-      authClient.emailOtp.sendVerificationOtp(
+      authClient.signIn.social(
         {
-          email: formData.email,
-          type: "email-verification",
+          provider,
+          callbackURL: "/app",
         },
         {
           onError(ctx) {
-            toast.error(
-              ctx.error.message || "Failed to send verification code",
-            );
-          },
-          onSuccess() {
-            toast.success("Verification code sent to your email!");
+            toast.error(`Failed to sign in with ${provider}`);
           },
         },
       ),
     ).unwrap();
   };
 
-  const verifyEmailAndSignIn = () => {
-    if (!formData.otp || formData.otp.length !== 6) {
-      toast.error("Please enter the 6-digit verification code");
+  /**
+   * Handle resend verification email
+   */
+  const handleResendVerification = () => {
+    if (!formData.email) {
+      toast.error("Please enter your email address first");
       return;
     }
 
     setLoading(true);
     safe(() =>
-      authClient.emailOtp.verifyEmail(
+      authClient.sendVerificationEmail(
         {
           email: formData.email,
-          otp: formData.otp,
+          callbackURL: "/sign-in?verified=true",
         },
         {
           onError(ctx) {
-            toast.error(ctx.error.message || "Invalid verification code");
+            toast.error(ctx.error.message || "Failed to send verification email");
           },
           onSuccess() {
-            toast.success("Email verified! Signing you in...");
-            // After email verification, sign in the user
-            emailAndPasswordSignIn();
+            toast.success("Verification email sent! Please check your inbox.");
           },
         },
       ),
@@ -116,206 +133,110 @@ export default function SignInPage() {
       .unwrap();
   };
 
-  const resendVerificationCode = () => {
-    setFormData({ otp: "" });
-    sendVerificationOTP();
-  };
-
-  const googleSignIn = () => {
-    if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
-      return toast.warning(t("oauthClientIdNotSet", { provider: "Google" }));
-    authClient.signIn
-      .social({
-        provider: "google",
-      })
-      .catch((e) => {
-        toast.error(e.error);
-      });
-  };
-
-  const githubSignIn = () => {
-    if (!process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID)
-      return toast.warning(t("oauthClientIdNotSet", { provider: "GitHub" }));
-    authClient.signIn
-      .social({
-        provider: "github",
-      })
-      .catch((e) => {
-        toast.error(e.error);
-      });
-  };
-
-  // Email verification view
-  if (showEmailVerification) {
-    return (
-      <div className="w-full h-full flex flex-col p-4 md:p-8 justify-center">
-        <Card className="w-full md:max-w-md bg-background border-none mx-auto shadow-none animate-in fade-in duration-1000">
-          <CardHeader className="my-4">
-            <CardTitle className="text-2xl text-center my-1">
-              Verify Your Email
-            </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              We sent a 6-digit verification code to {formData.email}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col">
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="otp">Verification Code</Label>
-                <Input
-                  id="otp"
-                  autoFocus
-                  disabled={loading}
-                  value={formData.otp}
-                  onChange={(e) =>
-                    setFormData({
-                      otp: e.target.value.replace(/\D/g, "").slice(0, 6),
-                    })
-                  }
-                  type="text"
-                  placeholder="123456"
-                  maxLength={6}
-                  className="text-center text-lg tracking-widest"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      verifyEmailAndSignIn();
-                    }
-                  }}
-                />
-              </div>
-
-              <Button
-                className="w-full"
-                onClick={verifyEmailAndSignIn}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader className="size-4 animate-spin ml-1" />
-                ) : (
-                  "Verify & Sign In"
-                )}
-              </Button>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={resendVerificationCode}
-                  disabled={loading}
-                  className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
-                >
-                  Didn&apos;t receive the code? Resend
-                </button>
-              </div>
-            </div>
-
-            <div className="my-8 text-center text-sm text-muted-foreground">
-              Want to try a different email?
-              <button
-                onClick={() => {
-                  setShowEmailVerification(false);
-                  setFormData({ otp: "" });
-                }}
-                className="underline-offset-4 text-primary ml-1 hover:underline"
-              >
-                Go back
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Regular sign-in view
   return (
-    <div className="w-full h-full flex flex-col p-4 md:p-8 justify-center">
-      <Card className="w-full md:max-w-md bg-background border-none mx-auto shadow-none animate-in fade-in duration-1000">
-        <CardHeader className="my-4">
-          <CardTitle className="text-2xl text-center my-1">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">
             {t("title")}
           </CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
+          <CardDescription className="text-center">
             {t("description")}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col">
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                autoFocus
-                disabled={loading}
-                value={formData.email}
-                onChange={(e) => setFormData({ email: e.target.value })}
-                type="email"
-                placeholder="user@example.com"
-                required
-              />
+
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={(e) => setFormData({ email: e.target.value })}
+              onKeyDown={(e) => e.key === "Enter" && emailAndPasswordSignIn()}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                href="/forgot-password"
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                disabled={loading}
-                value={formData.password}
-                placeholder="********"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    emailAndPasswordSignIn();
-                  }
-                }}
-                onChange={(e) => setFormData({ password: e.target.value })}
-                type="password"
-                required
-              />
-            </div>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) => setFormData({ password: e.target.value })}
+              onKeyDown={(e) => e.key === "Enter" && emailAndPasswordSignIn()}
+            />
+          </div>
+
+          <Button
+            onClick={emailAndPasswordSignIn}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+            Sign In
+          </Button>
+
+          <div className="text-center">
             <Button
-              className="w-full"
-              onClick={emailAndPasswordSignIn}
+              variant="link"
+              onClick={handleResendVerification}
               disabled={loading}
+              className="text-sm text-muted-foreground hover:text-primary"
             >
-              {loading ? (
-                <Loader className="size-4 animate-spin ml-1" />
-              ) : (
-                t("signIn")
-              )}
-            </Button>
-          </div>
-          <div className="flex items-center my-4">
-            <div className="flex-1 h-px bg-accent"></div>
-            <span className="px-4 text-sm text-muted-foreground">
-              {t("orContinueWith")}
-            </span>
-            <div className="flex-1 h-px bg-accent"></div>
-          </div>
-          <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              onClick={googleSignIn}
-              className="flex-1 "
-            >
-              <GoogleIcon className="size-4 fill-foreground" />
-              Google
-            </Button>
-            <Button variant="outline" onClick={githubSignIn} className="flex-1">
-              <GithubIcon className="size-4 fill-foreground" />
-              GitHub
+              Didn&apos;t receive verification email? Resend
             </Button>
           </div>
 
-          <div className="my-8 text-center text-sm text-muted-foreground">
-            {t("noAccount")}
-            <Link href="/sign-up" className="underline-offset-4 text-primary">
-              {t("signUp")}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-muted-foreground/20" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleOAuthSignIn("github")}
+              disabled={loading}
+            >
+              <GithubIcon className="mr-2 h-4 w-4" />
+              GitHub
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleOAuthSignIn("google")}
+              disabled={loading}
+            >
+              <GoogleIcon className="mr-2 h-4 w-4" />
+              Google
+            </Button>
+          </div>
+
+          <div className="text-center text-sm">
+            <span className="text-muted-foreground">
+              Don&apos;t have an account?{" "}
+            </span>
+            <Link
+              href="/sign-up"
+              className="font-medium text-primary hover:underline"
+            >
+              Sign up
             </Link>
           </div>
         </CardContent>
