@@ -53,8 +53,7 @@ export const auth = betterAuth({
               slug: "lifetime",
             },
           ],
-          successUrl:
-            "/app?checkout_success=true&checkout_id={CHECKOUT_ID}",
+          successUrl: "/app?checkout_success=true&checkout_id={CHECKOUT_ID}",
           authenticatedUsersOnly: true,
         }),
         portal(),
