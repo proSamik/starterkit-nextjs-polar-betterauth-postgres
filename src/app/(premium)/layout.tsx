@@ -1,30 +1,124 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { authClient } from "auth/client";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Settings } from "@/components/settings";
 import { Profile } from "@/components/profile";
 import { NotificationManager } from "@/components/notification-manager";
 
+type UserTier = 'free' | 'monthly' | 'yearly' | 'lifetime';
+
 /**
- * Premium layout with sidebar navigation and dynamic content rendering
+ * Loading skeleton for premium layout
  */
-export default function PremiumLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { data: session, isPending: isLoading } = authClient.useSession();
+function PremiumLayoutSkeleton() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
+
+/**
+ * Hook to manage user tier state
+ */
+function useUserTier() {
+  const [userTier, setUserTier] = useState<UserTier>('free');
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session } = authClient.useSession();
+
+  // Fetch customer state and determine tier
+  useEffect(() => {
+    const fetchCustomerState = async () => {
+      if (!session?.user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+                // Step 1: First fetch customer state (gets updated immediately after payment)
+        let newCustomerState: any = null;
+        try {
+          const stateResult = await authClient.customer.state();
+          newCustomerState = stateResult?.data || null;
+        } catch (error) {
+          // Silent fail - customer might not be configured yet
+        }
+
+        // Step 2: Then fetch lifetime orders
+        let newLifetimeOrders: any[] = [];
+        try {
+          const ordersResult = await authClient.customer.orders.list({
+            query: {
+              page: 1,
+              limit: 10,
+              productBillingType: "one_time",
+            },
+          });
+          const rawOrders = ordersResult?.data?.result?.items || [];
+          newLifetimeOrders = rawOrders;
+        } catch (error) {
+          // Silent fail - customer might not be configured yet
+        }
+
+        // Determine user tier
+        const MONTHLY_PRODUCT_ID = process.env.NEXT_PUBLIC_POLAR_MONTHLY_PRODUCT_ID;
+        const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID;
+
+
+
+        if (newLifetimeOrders.length > 0) {
+
+          setUserTier('lifetime');
+        } else {
+          const activeSubscription = newCustomerState?.activeSubscriptions?.find(
+            (sub: any) => {
+              
+              return sub.status === "active" && 
+                (sub.productId === MONTHLY_PRODUCT_ID || sub.productId === YEARLY_PRODUCT_ID);
+            }
+          );
+          
+          if (activeSubscription) {
+            const tier = activeSubscription.productId === MONTHLY_PRODUCT_ID ? 'monthly' : 'yearly';
+            
+            setUserTier(tier);
+          } else {
+            
+            setUserTier('free');
+          }
+        }
+      } catch (error) {
+        setUserTier('free');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCustomerState();
+  }, [session]);
+
+  return { userTier, isLoading };
+}
+
+/**
+ * Layout content component that handles async state
+ */
+function PremiumLayoutContent({ children }: { children: React.ReactNode }) {
+  const { data: session, isPending: isAuthLoading } = authClient.useSession();
+  const { userTier, isLoading: isTierLoading } = useUserTier();
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'profile' | 'settings'>('dashboard');
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
-    if (!isLoading && !session) {
+    if (!isAuthLoading && !session) {
       redirect("/sign-in");
     }
-  }, [session, isLoading]);
+  }, [session, isAuthLoading]);
 
   const handleNavigation = (page: 'dashboard' | 'profile' | 'settings') => {
     setCurrentPage(page);
@@ -43,12 +137,9 @@ export default function PremiumLayout({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+  // Show loading while auth or tier is loading
+  if (isAuthLoading || isTierLoading) {
+    return <PremiumLayoutSkeleton />;
   }
 
   if (!session) {
@@ -58,9 +149,24 @@ export default function PremiumLayout({
   return (
     <>
       <NotificationManager />
-      <AppSidebar onNavigate={handleNavigation}>
+      <AppSidebar onNavigate={handleNavigation} userTier={userTier}>
         {renderContent()}
       </AppSidebar>
     </>
+  );
+}
+
+/**
+ * Premium layout with sidebar navigation and dynamic content rendering
+ */
+export default function PremiumLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<PremiumLayoutSkeleton />}>
+      <PremiumLayoutContent>{children}</PremiumLayoutContent>
+    </Suspense>
   );
 }
