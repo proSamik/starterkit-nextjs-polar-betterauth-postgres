@@ -202,19 +202,19 @@ pnpm db:studio
    **Monthly Subscription:**
    - Name: "Pro Monthly"
    - Type: Subscription
-   - Price: $29/month
+   - Price: $19/month
    - Copy the Product ID to `POLAR_MONTHLY_PRODUCT_ID`
 
    **Yearly Subscription:**
    - Name: "Pro Yearly" 
    - Type: Subscription
-   - Price: $290/year
+   - Price: $180/year
    - Copy the Product ID to `POLAR_YEARLY_PRODUCT_ID`
 
    **Lifetime Deal:**
    - Name: "Lifetime Access"
    - Type: One-time
-   - Price: $499
+   - Price: $299
    - Copy the Product ID to `POLAR_LIFETIME_PRODUCT_ID`
 
 ### 6. Start Development
