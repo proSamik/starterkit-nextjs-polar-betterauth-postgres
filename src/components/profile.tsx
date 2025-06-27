@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "auth/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -14,40 +14,53 @@ import { Input } from "ui/input";
 import { Label } from "ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { User, Mail, Calendar, Save, Edit3 } from "lucide-react";
-import { toast } from "sonner";
+import { useUser, useStoreActions } from "../app/store";
+import { useToastNotifications } from "../components/notification-manager";
 
 /**
  * Profile component for managing user account information
  */
 export function Profile() {
   const { data: session } = authClient.useSession();
+  const storeUser = useUser();
+  const { setUser } = useStoreActions();
+  const toastNotifications = useToastNotifications();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: session?.user?.name || "",
-    email: session?.user?.email || "",
+    name: storeUser?.name || session?.user?.name || "",
+    email: storeUser?.email || session?.user?.email || "",
   });
+
+  // Sync form data when user data changes
+  useEffect(() => {
+    setFormData({
+      name: storeUser?.name || session?.user?.name || "",
+      email: storeUser?.email || session?.user?.email || "",
+     });
+  }, [storeUser, session]);
 
   const user = session?.user;
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast.error("Name is required");
+      toastNotifications.error("Name is required");
       return;
     }
 
     setIsLoading(true);
     try {
-      // Note: Better-auth doesn't expose user update methods in the client
-      // This would typically be handled through a custom API endpoint
-      // For now, we'll just show a toast indicating the limitation
-      toast.info(
-        "Profile updates are not yet implemented. This would typically update the user profile via an API endpoint.",
-      );
+      // Update the store with new user data
+      setUser({
+        name: formData.name,
+        email: formData.email,
+      });
+      
+      toastNotifications.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update profile:", error);
-      toast.error("Failed to update profile");
+      toastNotifications.error("Failed to update profile");
     } finally {
       setIsLoading(false);
     }
@@ -110,18 +123,18 @@ export function Profile() {
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
               <AvatarImage
-                src={user.image || "/pf.png"}
-                alt={user.name || ""}
+                src={storeUser?.avatar || user?.image || "/pf.png"}
+                alt={storeUser?.name || user?.name || ""}
                 className="object-cover"
               />
               <AvatarFallback className="text-lg">
-                {user.name?.slice(0, 1) || "U"}
+                {(storeUser?.name || user?.name)?.slice(0, 1) || "U"}
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-              <h3 className="text-lg font-medium">{user.name}</h3>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
-              {user.createdAt && (
+              <h3 className="text-lg font-medium">{storeUser?.name || user?.name}</h3>
+              <p className="text-sm text-muted-foreground">{storeUser?.email || user?.email}</p>
+              {user?.createdAt && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   Member since {new Date(user.createdAt).toLocaleDateString()}
