@@ -21,6 +21,7 @@ import {
   trackUserSignup,
   sendEmailVerificationLink,
 } from "@/lib/plunk/events";
+import { validateEmailSecurity } from "@/lib/auth/rate-limiter";
 
 
 // Initialize Polar client
@@ -72,6 +73,19 @@ export const auth = betterAuth({
        */
       async sendVerificationEmail({ user, url, token }, request) {
         try {
+          // Validate email address before sending
+          if (!user.email || typeof user.email !== 'string') {
+            console.error('Invalid email address provided for verification');
+            return;
+          }
+          
+          // Enhanced security validation
+          const emailValidation = validateEmailSecurity(user.email);
+          if (!emailValidation.valid) {
+            console.error('Email security validation failed:', emailValidation.error);
+            return;
+          }
+          
           // Send verification email using the modern link-based verification
           const result = await sendEmailVerificationLink(user.email, url);
           
@@ -116,6 +130,19 @@ export const auth = betterAuth({
      */
     async sendResetPassword({ user, url, token }, request) {
       try {
+        // Validate email address before sending
+        if (!user.email || typeof user.email !== 'string') {
+          console.error('Invalid email address provided for password reset');
+          return;
+        }
+        
+        // Enhanced security validation
+        const emailValidation = validateEmailSecurity(user.email);
+        if (!emailValidation.valid) {
+          console.error('Email security validation failed:', emailValidation.error);
+          return;
+        }
+        
         // Send password reset link using the modern link-based function
         const result = await sendPasswordResetLink(user.email, url);
         
