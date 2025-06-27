@@ -114,27 +114,28 @@ export default function SignUpPage() {
       return;
     }
 
-    setStep(4);
-    sendVerificationOTP();
+    // Create the account first, which will automatically send the OTP
+    createAccount();
   };
 
-  const sendVerificationOTP = () => {
+  const createAccount = () => {
     setIsLoading(true);
 
     safe(() =>
-      authClient.emailOtp.sendVerificationOtp(
+      authClient.signUp.email(
         {
           email: formData.email,
-          type: "email-verification",
+          password: formData.password,
+          name: formData.name,
+          callbackURL: "/app",
         },
         {
           onError(ctx) {
-            toast.error(
-              ctx.error.message || "Failed to send verification code",
-            );
+            toast.error(ctx.error.message || "Failed to create account");
           },
           onSuccess() {
-            toast.success("Verification code sent to your email!");
+            toast.success("Account created! Verification code sent to your email!");
+            setStep(4); // Move to verification step
             startCooldown(); // Start the 2-minute cooldown
           },
         },
@@ -148,7 +149,29 @@ export default function SignUpPage() {
     if (isOnCooldown) return;
 
     setFormData({ otp: "" });
-    sendVerificationOTP();
+    setIsLoading(true);
+
+    safe(() =>
+      authClient.sendVerificationEmail(
+        {
+          email: formData.email,
+          callbackURL: "/app",
+        },
+        {
+          onError(ctx) {
+            toast.error(
+              ctx.error.message || "Failed to resend verification code",
+            );
+          },
+          onSuccess() {
+            toast.success("Verification code resent to your email!");
+            startCooldown(); // Start the 2-minute cooldown
+          },
+        },
+      ),
+    )
+      .watch(() => setIsLoading(false))
+      .unwrap();
   };
 
   const handleEmailVerification = () => {
@@ -160,46 +183,26 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     safe(() =>
-      authClient.emailOtp.verifyEmail(
+      authClient.verifyEmail(
         {
-          email: formData.email,
-          otp: formData.otp,
+          query: {
+            token: formData.otp, // Use the OTP as token
+          },
         },
         {
           onError(ctx) {
             toast.error(ctx.error.message || "Invalid verification code");
           },
           onSuccess() {
-            // After email verification, complete the registration
-            completeRegistration();
+            toast.success("Email verified successfully! Welcome!");
+            // Account is already created, email is now verified, redirect to sign in
+            router.push("/sign-in?verified=true");
           },
         },
       ),
     )
       .watch(() => setIsLoading(false))
       .unwrap();
-  };
-
-  const completeRegistration = () => {
-    safe(() =>
-      authClient.signUp.email(
-        {
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-          callbackURL: "/app",
-        },
-        {
-          onError(ctx) {
-            toast.error(ctx.error.message || "Registration failed");
-          },
-          onSuccess() {
-            toast.success("Account created successfully! Welcome!");
-            router.push("/");
-          },
-        },
-      ),
-    ).unwrap();
   };
 
   return (
