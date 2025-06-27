@@ -1,257 +1,449 @@
-# Next.js Polar Better Auth Starter Kit
+# Polar SaaS Kit - Next.js Starter
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cgoinglove/nextjs-polar-starter-kit&env=BETTER_AUTH_SECRET&env=POLAR_ACCESS_TOKEN&envDescription=Learn+more+about+how+to+get+the+API+Keys+for+the+application&envLink=https://github.com/cgoinglove/nextjs-polar-starter-kit/blob/main/.env.example&demo-title=Next.js+Polar+Starter+Kit&demo-description=A+powerful+Next.js+starter+kit+with+Polar.sh+payments,+Better+Auth,+and+Postgres&products=[{"type":"integration","protocol":"storage","productSlug":"neon","integrationSlug":"neon"}])
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cgoinglove/nextjs-polar-starter-kit&env=BETTER_AUTH_SECRET&env=POLAR_ACCESS_TOKEN&envDescription=Learn+more+about+how+to+get+the+API+Keys+for+the+application&envLink=https://github.com/cgoinglove/nextjs-polar-starter-kit/blob/main/.env.example&demo-title=Polar+SaaS+Kit&demo-description=Production-ready+Next.js+starter+with+Polar.sh+payments,+Better+Auth,+and+premium+features&products=[{"type":"integration","protocol":"storage","productSlug":"neon","integrationSlug":"neon"}])
 
-The complete Next.js starter kit for building modern web applications with payments, authentication, and database out of the box.
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/prosamik?style=for-the-badge&logo=github&logoColor=white&labelColor=black&color=pink)](https://github.com/sponsors/prosamik)
 
-**🚀 Built with the best modern tools:**
+**The complete production-ready Next.js starter kit for building modern SaaS applications with payments, authentication, and premium features.**
+
+🚀 **Built with the latest and greatest:**
 - ⚡ **Next.js 15** - React framework with App Router
-- 💳 **Polar.sh** - Simple, powerful payments and billing
-- 🔐 **Better Auth** - Modern authentication with social providers
-- 🗄️ **Postgres + Drizzle ORM** - Type-safe database operations
-- 🎨 **Tailwind CSS** - Beautiful, responsive design system
-- 🌍 **Internationalization** - Multi-language support with next-intl
+- 💳 **Polar.sh** - Modern payments and subscription management
+- 🔐 **Better Auth** - Authentication with OAuth and sessions
+- 🗄️ **PostgreSQL + Drizzle ORM** - Type-safe database operations
+- 🎨 **20+ Theme Variants** - Beautiful theming system with dark mode
+- 🏢 **Production-Ready** - Sidebar navigation, user management, premium features
 
-Perfect for SaaS applications, e-commerce sites, and any web app that needs user accounts and payments.
+Perfect for SaaS applications, premium tools, and any web app that needs user accounts with subscription management.
 
-## Table of Contents
+## ✨ Features
 
-- [Next.js Polar Better Auth Starter Kit](#nextjs-polar-better-auth-starter-kit)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Tech Stack](#tech-stack)
-  - [Getting Started](#getting-started)
-    - [Quick Start (Local Development)](#quick-start-local-development)
-    - [Quick Start (Docker Compose)](#quick-start-docker-compose)
-    - [Environment Variables](#environment-variables)
-  - [Project Structure](#project-structure)
-  - [Authentication](#authentication)
-  - [Database](#database)
-  - [Payments with Polar.sh](#payments-with-polarsh)
-  - [Deployment](#deployment)
-    - [Vercel Deployment](#vercel-deployment)
-    - [Docker Deployment](#docker-deployment)
-  - [Contributing](#contributing)
+### 🔐 **Authentication & User Management**
+- Email/password authentication with Better Auth
+- OAuth providers (GitHub, Google) with account linking
+- Secure session management (7-day expiration)
+- User preferences and profile management
+- Protected route groups for premium features
 
-## Features
+### 💳 **Payments & Billing (Polar.sh)**
+- Subscription management (monthly/yearly plans)
+- One-time payments (lifetime deals)
+- Automatic customer creation and linking
+- Graceful error handling for payment failures
+- Customer portal managed by Polar
 
-✨ **Authentication & User Management**
-- Email/password authentication
-- Social login (GitHub, Google)
-- Account linking
-- Session management
-- User preferences
+### 🎨 **Premium UI & Theming**
+- **20+ built-in themes**: Default, Cyberpunk Neon, Tropical Paradise, Zen Garden, etc.
+- Responsive sidebar navigation with collapsible design
+- Theme-aware components using CSS custom properties
+- Dark/light mode support for all themes
+- Mobile-first responsive design
 
-💳 **Payments & Billing**
-- Polar.sh integration
-- Subscription management
-- One-time payments
-- Webhook handling
-- Customer portal
+### 🏢 **Production Features**
+- Dashboard with subscription status and analytics
+- User profile management with avatar support
+- Settings page with theme selection
+- Landing page with pricing tiers
+- Internationalization support (7 languages)
 
-🗄️ **Database & ORM**
-- PostgreSQL database
-- Drizzle ORM with type safety
-- Database migrations
-- Schema management
+### 🛠️ **Developer Experience**
+- TypeScript everywhere with strict mode
+- Biome for fast linting and formatting
+- Hot reload development server
+- Docker support for easy deployment
+- Comprehensive error handling
 
-🎨 **UI & UX**
-- Modern, responsive design
-- Dark/light theme support
-- Mobile-first approach
-- Accessible components with Radix UI
+## 🚀 Quick Start
 
-🌍 **Developer Experience**
-- TypeScript everywhere
-- ESLint + Prettier (Biome)
-- Hot reload
-- Docker support
-- Easy deployment
-
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| **Framework** | Next.js 15 with App Router |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS |
-| **Authentication** | Better Auth |
-| **Database** | PostgreSQL with Drizzle ORM |
-| **Payments** | Polar.sh |
-| **UI Components** | Radix UI |
-| **Internationalization** | next-intl |
-| **Icons** | Lucide React |
-| **Animations** | Framer Motion |
-| **Linting** | Biome |
-| **Package Manager** | pnpm |
-
-## Getting Started
-
-> This project uses [pnpm](https://pnpm.io/) as the recommended package manager.
+### Prerequisites
 
 ```bash
-# If you don't have pnpm:
+# Install pnpm (recommended package manager)
 npm install -g pnpm
+
+# Verify Node.js version (18+ required)
+node --version
 ```
 
-### Quick Start (Local Development)
+### 1. Clone and Install
 
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/cgoinglove/nextjs-polar-starter-kit.git
 cd nextjs-polar-starter-kit
 
-# 2. Install dependencies
+# Install dependencies
 pnpm install
 
-# 3. Create environment variables file
-cp .env.example .env
-
-# 4. (Optional) Start PostgreSQL with Docker
-pnpm docker:pg
-
-# 5. Run database migrations
-pnpm db:migrate
-
-# 6. Start the development server
-pnpm dev
+# Run post-install setup
+pnpm postinstall
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application.
+### 2. Environment Setup
 
-### Quick Start (Docker Compose)
+Create your environment file:
 
 ```bash
-# 1. Clone and install dependencies
-git clone https://github.com/cgoinglove/nextjs-polar-starter-kit.git
-cd nextjs-polar-starter-kit
-pnpm install
-
-# 2. Create environment variables
+# Copy the example environment file
 cp .env.example .env
 
-# 3. Start all services with Docker Compose
-pnpm docker-compose:up
+# Or use the built-in script
+pnpm initial:env
 ```
 
-### Environment Variables
+### 3. Configure Environment Variables
 
-Copy `.env.example` to `.env` and fill in your values:
+Open `.env` and configure the following:
 
+#### 🔐 **Required - Authentication**
 ```env
-# === Authentication ===
-BETTER_AUTH_SECRET=your_secret_here
-BETTER_AUTH_URL=http://localhost:3000
+# Generate a random secret key (32+ characters)
+BETTER_AUTH_SECRET=your-super-secret-key-here-make-it-long-and-random
 
-# === Database ===
-POSTGRES_URL=postgres://username:password@localhost:5432/database
+# Base URL for authentication callbacks
+BETTER_AUTH_URL=http://localhost:3000  # Local development
+# BETTER_AUTH_URL=https://yourdomain.com  # Production
+```
 
-# === Payments ===
-POLAR_ACCESS_TOKEN=your_polar_token
+#### 💳 **Required - Polar.sh Payments**
+```env
+# Get your Polar access token (see setup guide below)
+POLAR_ACCESS_TOKEN=polar_at_xxxxxxxxxxxxx
 
-# === OAuth (Optional) ===
+# Product IDs from your Polar dashboard
+POLAR_MONTHLY_PRODUCT_ID=prod_xxxxxxxxxxxxx
+POLAR_YEARLY_PRODUCT_ID=prod_xxxxxxxxxxxxx
+POLAR_LIFETIME_PRODUCT_ID=prod_xxxxxxxxxxxxx
+```
+
+#### 🗄️ **Required - Database**
+```env
+# Local development (using Docker)
+POSTGRES_URL=postgres://postgres:password@localhost:5432/polar_saas
+
+# Or use a cloud provider (Neon, Supabase, Railway, etc.)
+# POSTGRES_URL=postgresql://username:password@your-db-host:5432/database
+```
+
+#### 🔗 **Optional - OAuth Providers**
+```env
+# GitHub OAuth (optional)
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# Google OAuth (optional)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-## Project Structure
+#### ⚙️ **Optional - Additional Settings**
+```env
+# Disable user registration (default: false)
+DISABLE_SIGN_UP=false
 
-```
-├── src/
-│   ├── app/                    # Next.js app directory
-│   │   ├── (auth)/            # Authentication pages
-│   │   ├── (dashboard)/       # Protected dashboard pages
-│   │   ├── api/               # API routes
-│   │   └── globals.css        # Global styles
-│   ├── components/            # React components
-│   │   ├── ui/               # Reusable UI components
-│   │   └── layouts/          # Layout components
-│   ├── lib/                  # Utility libraries
-│   │   ├── auth/             # Authentication config
-│   │   ├── db/               # Database config & schema
-│   │   └── utils.ts          # Utility functions
-│   └── types/                # TypeScript type definitions
-├── messages/                 # Internationalization files
-├── public/                   # Static assets
-└── docker/                   # Docker configuration
+# Allow non-HTTPS cookies for local development
+NO_HTTPS=true
 ```
 
-## Authentication
+### 4. Database Setup
 
-This starter kit uses **Better Auth** for a complete authentication solution:
+#### Option A: Local PostgreSQL with Docker (Recommended)
 
-- **Multiple providers**: Email/password, GitHub, Google
-- **Session management**: Secure, server-side sessions
-- **Account linking**: Connect multiple auth methods
-- **Type-safe**: Full TypeScript support
+```bash
+# Start PostgreSQL container
+pnpm docker:pg
 
-Authentication is configured in `src/lib/auth/` and API routes are handled automatically.
+# Run database migrations
+pnpm db:migrate
 
-## Database
+# (Optional) Open Drizzle Studio to view/edit data
+pnpm db:studio
+```
 
-**PostgreSQL** with **Drizzle ORM** provides a robust, type-safe database layer:
+#### Option B: Cloud Database Provider
 
-- **Schema definition**: Type-safe schema in `src/lib/db/schema.pg.ts`
-- **Migrations**: Automatic migration generation and running
-- **Type safety**: Full TypeScript integration
-- **Relationships**: Support for complex data relationships
+1. **Sign up for a database provider:**
+   - [Neon](https://neon.tech) (Recommended)
+   - [Supabase](https://supabase.com)
+   - [Railway](https://railway.app)
+   - [PlanetScale](https://planetscale.com)
+
+2. **Get your connection string** and add it to `.env`:
+   ```env
+   POSTGRES_URL=postgresql://username:password@your-db-host:5432/database
+   ```
+
+3. **Run migrations:**
+   ```bash
+   pnpm db:migrate
+   ```
+
+### 5. Polar.sh Setup (Payment Provider)
+
+#### Step 1: Create Polar Account
+1. Visit [polar.sh](https://polar.sh) and sign up
+2. Complete your organization setup
+3. Verify your account
+
+#### Step 2: Get Access Token
+1. Go to **Settings** → **API Keys** in your Polar dashboard
+2. Click **Create new token**
+3. Name it "SaaS Kit Development"
+4. Copy the token (starts with `polar_at_`)
+5. Add it to your `.env` file:
+   ```env
+   POLAR_ACCESS_TOKEN=polar_at_xxxxxxxxxxxxx
+   ```
+
+#### Step 3: Create Products
+1. Go to **Products** in your Polar dashboard
+2. Create three products:
+
+   **Monthly Subscription:**
+   - Name: "Pro Monthly"
+   - Type: Subscription
+   - Price: $29/month
+   - Copy the Product ID to `POLAR_MONTHLY_PRODUCT_ID`
+
+   **Yearly Subscription:**
+   - Name: "Pro Yearly" 
+   - Type: Subscription
+   - Price: $290/year
+   - Copy the Product ID to `POLAR_YEARLY_PRODUCT_ID`
+
+   **Lifetime Deal:**
+   - Name: "Lifetime Access"
+   - Type: One-time
+   - Price: $499
+   - Copy the Product ID to `POLAR_LIFETIME_PRODUCT_ID`
+
+### 6. Start Development
 
 Common commands:
 ```bash
-pnpm db:generate    # Generate migrations
-pnpm db:migrate     # Run migrations
-pnpm db:studio      # Open Drizzle Studio
-pnpm db:push        # Push schema changes
+# Start the development server
+pnpm dev
+
+# Open your browser
+# http://localhost:3000
 ```
 
-## Payments with Polar.sh
+## 🏗️ Project Structure
 
-**Polar.sh** integration provides everything you need for payments and billing:
+```
+polar-saaskit/
+├── 📁 src/
+│   ├── 📁 app/                     # Next.js App Router
+│   │   ├── 📁 (auth)/             # Public authentication pages
+│   │   │   ├── sign-in/           # Sign in page
+│   │   │   └── sign-up/           # Sign up page  
+│   │   ├── 📁 (premium)/          # Protected premium features
+│   │   │   ├── app/               # Main app interface
+│   │   │   │   └── page.tsx       # Dashboard with sidebar
+│   │   │   └── layout.tsx         # Premium layout
+│   │   ├── 📁 api/                # API routes
+│   │   │   └── auth/              # Better Auth endpoints
+│   │   ├── pricing/               # Landing page pricing
+│   │   ├── page.tsx               # Landing page
+│   │   └── layout.tsx             # Root layout
+│   ├── 📁 components/             # React components
+│   │   ├── 📁 ui/                 # Reusable UI components
+│   │   ├── 📁 layouts/            # Layout components
+│   │   ├── 📁 landing/            # Landing page sections
+│   │   ├── dashboard.tsx          # Dashboard with stats
+│   │   ├── profile.tsx            # User profile
+│   │   └── settings.tsx           # Settings with themes
+│   ├── 📁 lib/                    # Core libraries
+│   │   ├── 📁 auth/               # Authentication config
+│   │   ├── 📁 db/                 # Database & migrations
+│   │   ├── utils.ts               # Utility functions
+│   │   └── const.ts               # App constants
+│   └── 📁 types/                  # TypeScript definitions
+├── 📁 messages/                   # Internationalization
+├── 📁 public/                     # Static assets
+├── 📁 docker/                     # Docker configuration
+└── 📁 scripts/                    # Build scripts
+```
 
-- **Subscription management**: Recurring billing made simple
-- **One-time payments**: Support for single purchases
-- **Customer portal**: Self-service customer management
-- **Webhooks**: Real-time payment updates
-- **International**: Global payment processing
+## 🎨 Theme System
 
-Set up your Polar.sh account and add your access token to the environment variables.
+This starter includes **20+ beautiful themes** with full dark mode support:
 
-## Deployment
+### Base Themes
+- **Default** - Clean and modern
+- **Zinc** - Subtle and professional  
+- **Slate** - Cool blue-gray tones
+- **Stone** - Warm neutral palette
+- **Gray** - Classic grayscale
+- **Blue** - Vibrant blue accents
+- **Orange** - Energetic orange highlights
+- **Pink** - Soft pink aesthetics
 
-### Vercel Deployment
+### Special Themes
+- **Bubblegum Pop** - Playful pink and purple
+- **Cyberpunk Neon** - Electric blues and magentas
+- **Retro Arcade** - 80s gaming nostalgia
+- **Tropical Paradise** - Ocean blues and sunset orange
+- **Steampunk Cogs** - Industrial brass and copper
+- **Neon Synthwave** - Retro-futuristic neon
+- **Pastel Kawaii** - Soft pastel cuteness
+- **Space Odyssey** - Deep space blues and stars
+- **Vintage Vinyl** - Classic record warmth
+- **Misty Harbor** - Foggy blues and grays
+- **Zen Garden** - Natural greens and earth tones
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cgoinglove/nextjs-polar-starter-kit)
+Users can switch themes instantly via the Settings page in the sidebar.
 
-1. Click the deploy button above
-2. Configure your environment variables
-3. Connect your PostgreSQL database (Neon, Supabase, etc.)
-4. Deploy!
+## 🌐 Deployment
+
+### Vercel Deployment (Recommended)
+
+1. **Deploy to Vercel:**
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cgoinglove/nextjs-polar-starter-kit)
+
+2. **Configure Environment Variables:**
+   - Add all required environment variables from your `.env` file
+   - Update `BETTER_AUTH_URL` to your Vercel domain
+   - Use a production database (Neon recommended)
+
+3. **Database Setup for Production:**
+   ```bash
+   # Option 1: Use Neon (Recommended)
+   # 1. Sign up at neon.tech
+   # 2. Create a new project
+   # 3. Copy connection string to POSTGRES_URL
+   
+   # Option 2: Use Vercel Postgres
+   # 1. Go to Vercel Dashboard → Storage → Create Database
+   # 2. Choose PostgreSQL
+   # 3. Environment variables are auto-added
+   ```
+
+4. **Run Production Migrations:**
+   ```bash
+   # Connect to your production database
+   pnpm db:migrate
+   ```
 
 ### Docker Deployment
 
 ```bash
-# Build and run with Docker
-docker build -t nextjs-polar-starter .
-docker run -p 3000:3000 nextjs-polar-starter
+# Build and start with Docker Compose
+pnpm docker-compose:up
 
-# Or use Docker Compose for full stack
-docker-compose -f docker/compose.yml up -d
+# Or build manually
+docker build -t polar-saas-kit .
+docker run -p 3000:3000 polar-saas-kit
 ```
 
-## Contributing
+### Manual Deployment
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
+```
+
+## 🛠️ Development Commands
+
+### Core Commands
+```bash
+pnpm dev                  # Start development server
+pnpm build               # Build for production  
+pnpm start               # Start production server
+pnpm lint                # Run Biome linter
+pnpm format              # Format code
+```
+
+### Database Commands
+```bash
+pnpm db:generate         # Generate new migrations
+pnpm db:migrate          # Run pending migrations
+pnpm db:studio           # Open Drizzle Studio
+pnpm db:push            # Push schema changes (dev only)
+```
+
+### Docker Commands
+```bash
+pnpm docker:pg           # Start PostgreSQL only
+pnpm docker:app          # Start app only
+pnpm docker-compose:up   # Start full stack
+pnpm docker-compose:down # Stop all services
+```
+
+### Utility Commands
+```bash
+pnpm initial:env         # Generate .env from .env.example
+pnpm postinstall         # Post-installation setup
+pnpm clean               # Clean build artifacts
+```
+
+## 🏛️ Architecture
+
+### Authentication Flow
+1. **User signs up/in** → Better Auth handles authentication
+2. **Polar customer created** → Automatic customer linking
+3. **Session established** → 7-day session with refresh
+4. **Route protection** → Access to premium features
+
+### Payment Flow
+1. **User selects plan** → Redirected to Polar checkout
+2. **Payment processed** → Polar handles payment securely
+3. **Webhook received** → Subscription status updated
+4. **Access granted** → Premium features unlocked
+
+### Database Schema
+- **User table** - User accounts and preferences
+- **Session table** - Authentication sessions
+- **Account table** - OAuth provider accounts
+- **Verification table** - Email verification codes
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines:
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### Development Guidelines
+- Follow the existing code style (Biome formatting)
+- Add TypeScript types for all new code
+- Write JSDoc comments for functions
+- Test authentication flows thoroughly
+- Use theme-aware CSS custom properties
+
+## 📧 Support
+
+- **Documentation**: Check the [cursor rules](.cursorrules) for detailed development guidelines
+- **Issues**: [GitHub Issues](https://github.com/cgoinglove/nextjs-polar-starter-kit/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/cgoinglove/nextjs-polar-starter-kit/discussions)
+
+## 💖 Sponsor
+
+If this starter kit helps you build amazing SaaS applications, consider sponsoring the development:
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/prosamik?style=for-the-badge&logo=github&logoColor=white&labelColor=black&color=pink)](https://github.com/sponsors/prosamik)
+
+Your support helps maintain and improve this project for the entire community.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org) - The React framework for production
+- [Better Auth](https://better-auth.com) - Modern authentication for web apps
+- [Polar.sh](https://polar.sh) - Simple, powerful payments for developers
+- [Drizzle ORM](https://orm.drizzle.team) - TypeScript ORM for SQL databases
+- [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS framework
+- [Radix UI](https://radix-ui.com) - Accessible component primitives
+
 ---
 
-**Built with ❤️ by the community**
-
-Start building your next great web application today!
+**Built with ❤️ by [prosamik](https://github.com/prosamik)**
