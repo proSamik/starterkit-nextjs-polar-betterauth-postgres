@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "ui/card";
 import { Badge } from "ui/badge";
+import { Button } from "ui/button";
 import { 
   LayoutDashboard, 
   Users, 
@@ -16,24 +17,72 @@ import {
   TrendingUp, 
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  RefreshCw
 } from "lucide-react";
+import { useUser, useLoading, useNotifications } from "../app/store";
 
 /**
  * Dashboard component with overview statistics and recent activity
  */
 export function Dashboard() {
+  const user = useUser();
+  const { isLoading, setLoading } = useLoading();
+  const { add: addNotification } = useNotifications();
+
+  /**
+   * Simulate data loading
+   */
+  const handleRefresh = async () => {
+    setLoading(true);
+    addNotification({
+      type: 'info',
+      message: 'Refreshing dashboard data...'
+    });
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setLoading(false);
+    addNotification({
+      type: 'success',
+      message: 'Dashboard data refreshed successfully'
+    });
+  };
+
+  /**
+   * Load initial data
+   */
+  useEffect(() => {
+    if (user.id && user.name) {
+      addNotification({
+        type: 'info',
+        message: `Welcome back, ${user.name}!`
+      });
+    }
+  }, [user.id, user.name, addNotification]);
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <LayoutDashboard className="h-8 w-8" />
-          Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here&apos;s what&apos;s happening with your account.
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <LayoutDashboard className="h-8 w-8" />
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground">
+            {user.name ? `Welcome back, ${user.name}!` : 'Welcome back!'} Here&apos;s what&apos;s happening with your account.
+          </p>
+        </div>
+        <Button 
+          onClick={handleRefresh} 
+          disabled={isLoading}
+          variant="outline"
+          size="sm"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? 'Refreshing...' : 'Refresh'}
+        </Button>
       </div>
 
       {/* Stats Grid */}
