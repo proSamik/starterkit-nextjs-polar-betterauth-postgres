@@ -49,8 +49,6 @@ next-env.d.ts
 
 local-data
 
-.cursorrules
-.cursor
 *.ignore
 .config.json
 package-lock.json
