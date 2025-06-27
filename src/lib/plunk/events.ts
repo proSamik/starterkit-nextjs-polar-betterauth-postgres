@@ -2,15 +2,15 @@
  * Plunk Email Service Integration
  *
  * This module provides transactional email functionality for user authentication flows:
- * - Password reset emails with OTP codes
- * - Email verification emails with OTP codes
+ * - Email verification emails with verification links
+ * - Password reset emails with reset links  
  * - User signup event tracking
  *
  * EMAIL TEMPLATES:
- * - Modern HTML designs with responsive layout
- * - Branded with Next.js Starter Kit styling (blue/white theme)
- * - Clear OTP display with security notices
- * - Professional styling using system fonts
+ * - Modern shadcn-inspired designs with responsive layout
+ * - Branded with Polar SaaS Kit styling
+ * - Clear call-to-action buttons with verification links
+ * - Professional styling using system fonts and modern colors
  *
  * CONFIGURATION:
  * Required environment variables:
@@ -18,11 +18,11 @@
  *
  * USAGE:
  * ```typescript
- * // Send password reset email
- * const result = await sendPasswordResetOTP("user@example.com", "123456");
+ * // Send email verification link
+ * const result = await sendEmailVerificationLink("user@example.com", "https://app.com/verify?token=...");
  *
- * // Send email verification
- * const result = await sendEmailVerificationOTP("user@example.com", "123456");
+ * // Send password reset link
+ * const result = await sendPasswordResetLink("user@example.com", "https://app.com/reset?token=...");
  *
  * // Check result
  * if (result.success) {
@@ -33,266 +33,218 @@
  * ```
  *
  * BETTER-AUTH INTEGRATION:
- * These functions are automatically called by better-auth's emailOTP plugin
- * when users request password resets or email verification.
+ * These functions are automatically called by better-auth's email verification
+ * and password reset systems.
  */
 
 import { getPlunkClient } from "./client";
 import type { PlunkResponse } from "./client";
 
 /**
- * Generate HTML email template for password reset OTP
- * @param otpCode 6-digit OTP code
- * @returns HTML email template
+ * Generate modern HTML email template for email verification with link
+ * @param verificationUrl The verification URL to include in the email
+ * @returns HTML email template with shadcn-style design
  */
-function generatePasswordResetEmailHTML(otpCode: string): string {
+function generateEmailVerificationHTML(verificationUrl: string): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password</title>
+    <title>Verify Your Email - Polar SaaS Kit</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #020817;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f8fafc;
         }
         .container {
-            background: white;
-            border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 48px 40px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         .logo {
             font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 10px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
         }
         .title {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
         }
         .subtitle {
             color: #64748b;
             font-size: 16px;
+            margin-bottom: 0;
         }
-        .otp-container {
-            background: #f1f5f9;
-            border: 2px dashed #cbd5e1;
-            border-radius: 8px;
-            padding: 30px;
+        .content {
+            margin: 32px 0;
+        }
+        .description {
+            color: #475569;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+        .button-container {
             text-align: center;
-            margin: 30px 0;
+            margin: 40px 0;
         }
-        .otp-code {
-            font-size: 36px;
-            font-weight: bold;
-            color: #2563eb;
-            letter-spacing: 8px;
-            font-family: 'Courier New', monospace;
-        }
-        .otp-label {
-            color: #64748b;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        .instructions {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 16px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .warning {
-            background: #fef2f2;
-            border-left: 4px solid #ef4444;
-            padding: 16px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            color: #64748b;
-            font-size: 14px;
-        }
-        .button {
+        .verify-button {
             display: inline-block;
-            background: #2563eb;
-            color: white;
-            padding: 12px 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 14px 32px;
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-            margin: 20px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">Next.js Starter Kit</div>
-            <h1 class="title">Reset Your Password</h1>
-            <p class="subtitle">We received a request to reset your password</p>
-        </div>
-
-        <div class="otp-container">
-            <div class="otp-code">${otpCode}</div>
-            <div class="otp-label">Your verification code</div>
-        </div>
-
-        <div class="instructions">
-            <strong>Instructions:</strong>
-            <ol>
-                <li>Enter this 6-digit code on the password reset page</li>
-                <li>Create a new secure password</li>
-                <li>The code expires in 5 minutes</li>
-            </ol>
-        </div>
-
-        <div class="warning">
-            <strong>Security Notice:</strong><br>
-            If you didn't request a password reset, please ignore this email. Your account remains secure.
-        </div>
-
-        <div class="footer">
-            <p>This code will expire in 5 minutes for your security.</p>
-            <p>If you need help, contact our support team.</p>
-            <p>&copy; 2024 Next.js Starter Kit. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-`;
-}
-
-/**
- * Generate HTML email template for email verification OTP
- * @param otpCode 6-digit OTP code
- * @returns HTML email template
- */
-function generateEmailVerificationHTML(otpCode: string): string {
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f8fafc;
-        }
-        .container {
-            background: white;
             border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 10px;
-        }
-        .title {
-            font-size: 28px;
             font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #64748b;
             font-size: 16px;
+            transition: all 0.2s ease;
+            border: 1px solid #0f172a;
         }
-        .otp-container {
+        .verify-button:hover {
+            background: #1e293b;
+            border-color: #1e293b;
+        }
+        .alternative-link {
             background: #f1f5f9;
-            border: 2px dashed #cbd5e1;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 30px;
+            padding: 20px;
+            margin: 24px 0;
             text-align: center;
-            margin: 30px 0;
         }
-        .otp-code {
-            font-size: 36px;
-            font-weight: bold;
-            color: #2563eb;
-            letter-spacing: 8px;
-            font-family: 'Courier New', monospace;
-        }
-        .otp-label {
-            color: #64748b;
+        .alternative-link p {
+            margin: 0 0 12px 0;
+            color: #475569;
             font-size: 14px;
-            margin-top: 10px;
         }
-        .instructions {
-            background: #dcfce7;
-            border-left: 4px solid #16a34a;
-            padding: 16px;
-            margin: 20px 0;
-            border-radius: 4px;
+        .link-text {
+            word-break: break-all;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            color: #3730a3;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .security-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .security-notice h4 {
+            color: #92400e;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        .security-notice p {
+            color: #a16207;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.5;
         }
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 48px;
+            padding-top: 32px;
             border-top: 1px solid #e2e8f0;
+        }
+        .footer-text {
             color: #64748b;
             font-size: 14px;
+            margin: 8px 0;
+        }
+        .footer-links {
+            margin-top: 16px;
+        }
+        .footer-link {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 16px;
+        }
+        .footer-link:hover {
+            color: #0f172a;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 32px 24px;
+            }
+            .title {
+                font-size: 28px;
+            }
+            .verify-button {
+                padding: 12px 24px;
+                font-size: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Next.js Starter Kit</div>
+            <div class="logo">🚀 Polar SaaS Kit</div>
             <h1 class="title">Verify Your Email</h1>
             <p class="subtitle">Welcome! Please verify your email address to continue</p>
         </div>
 
-        <div class="otp-container">
-            <div class="otp-code">${otpCode}</div>
-            <div class="otp-label">Your verification code</div>
-        </div>
+        <div class="content">
+            <p class="description">
+                Thanks for signing up for Polar SaaS Kit! To complete your account setup and start building amazing SaaS applications, please verify your email address by clicking the button below.
+            </p>
 
-        <div class="instructions">
-            <strong>Next Steps:</strong>
-            <ol>
-                <li>Enter this 6-digit code on the verification page</li>
-                <li>Complete your account setup</li>
-                <li>Start building amazing web applications!</li>
-            </ol>
+            <div class="button-container">
+                <a href="${verificationUrl}" class="verify-button">
+                    Verify Email Address
+                </a>
+            </div>
+
+            <div class="alternative-link">
+                <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                <div class="link-text">${verificationUrl}</div>
+            </div>
+
+            <div class="security-notice">
+                <h4>🔒 Security Notice</h4>
+                <p>This verification link will expire in 15 minutes for your security. If you didn't create an account with us, please ignore this email.</p>
+            </div>
         </div>
 
         <div class="footer">
-            <p>This code will expire in 5 minutes for your security.</p>
-            <p>Welcome to the future of modern web development!</p>
-            <p>&copy; 2024 Next.js Starter Kit. All rights reserved.</p>
+            <p class="footer-text">Welcome to the future of modern SaaS development!</p>
+            <p class="footer-text">Built with Next.js 15, Better Auth, and Polar.sh</p>
+            <div class="footer-links">
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+                <a href="#" class="footer-link">Support</a>
+            </div>
+            <p class="footer-text" style="margin-top: 24px;">© 2024 Polar SaaS Kit. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -301,34 +253,270 @@ function generateEmailVerificationHTML(otpCode: string): string {
 }
 
 /**
- * Send email verification OTP as transactional email
+ * Generate modern HTML email template for password reset with link
+ * @param resetUrl The password reset URL to include in the email
+ * @returns HTML email template with shadcn-style design
+ */
+function generatePasswordResetHTML(resetUrl: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Your Password - Polar SaaS Kit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #020817;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 48px 40px;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+        .title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+        .content {
+            margin: 32px 0;
+        }
+        .description {
+            color: #475569;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .reset-button {
+            display: inline-block;
+            background: #dc2626;
+            color: #ffffff;
+            padding: 14px 32px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            border: 1px solid #dc2626;
+        }
+        .reset-button:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+        .alternative-link {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+            text-align: center;
+        }
+        .alternative-link p {
+            margin: 0 0 12px 0;
+            color: #475569;
+            font-size: 14px;
+        }
+        .link-text {
+            word-break: break-all;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            color: #3730a3;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .security-notice {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            border-left: 4px solid #ef4444;
+            padding: 20px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .security-notice h4 {
+            color: #991b1b;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        .security-notice p {
+            color: #b91c1c;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .info-notice {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 32px 0;
+            border-radius: 8px;
+        }
+        .info-notice h4 {
+            color: #1d4ed8;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+        .info-notice p {
+            color: #1e40af;
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer-text {
+            color: #64748b;
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        .footer-links {
+            margin-top: 16px;
+        }
+        .footer-link {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 16px;
+        }
+        .footer-link:hover {
+            color: #0f172a;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 32px 24px;
+            }
+            .title {
+                font-size: 28px;
+            }
+            .reset-button {
+                padding: 12px 24px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚀 Polar SaaS Kit</div>
+            <h1 class="title">Reset Your Password</h1>
+            <p class="subtitle">We received a request to reset your password</p>
+        </div>
+
+        <div class="content">
+            <p class="description">
+                Someone (hopefully you!) requested a password reset for your Polar SaaS Kit account. If this was you, click the button below to reset your password and regain access to your account.
+            </p>
+
+            <div class="button-container">
+                <a href="${resetUrl}" class="reset-button">
+                    Reset My Password
+                </a>
+            </div>
+
+            <div class="alternative-link">
+                <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                <div class="link-text">${resetUrl}</div>
+            </div>
+
+            <div class="info-notice">
+                <h4>⏱️ Time Limit</h4>
+                <p>This password reset link will expire in 5 minutes for your security. After that, you'll need to request a new reset link.</p>
+            </div>
+
+            <div class="security-notice">
+                <h4>🔒 Security Notice</h4>
+                <p>If you didn't request a password reset, please ignore this email. Your account remains secure and no changes have been made.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">Need help? Contact our support team for assistance.</p>
+            <div class="footer-links">
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+                <a href="#" class="footer-link">Support</a>
+            </div>
+            <p class="footer-text" style="margin-top: 24px;">© 2024 Polar SaaS Kit. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+}
+
+/**
+ * Send email verification link as transactional email
  * @param email User's email address
- * @param otpCode 6-digit OTP code
+ * @param verificationUrl The verification URL containing the token
  * @returns Promise<PlunkResponse> Success/failure result with error details
  */
-export async function sendEmailVerificationOTP(
+export async function sendEmailVerificationLink(
   email: string,
-  otpCode: string,
+  verificationUrl: string,
 ): Promise<PlunkResponse> {
   try {
-    console.log(`Sending email verification OTP to ${email}`);
+    console.log(`Sending email verification link to ${email}`);
     const plunk = getPlunkClient();
 
     const result = await plunk.sendEmail({
       to: email,
-      subject: "Verify Your Email - Next.js Starter Kit",
-      body: generateEmailVerificationHTML(otpCode),
+      subject: "Verify Your Email - Polar SaaS Kit",
+      body: generateEmailVerificationHTML(verificationUrl),
       type: "html",
       from: "noreply@prosamik.in",
-      name: "Next.js Starter Kit",
+      name: "Polar SaaS Kit",
       subscribed: false, // Email verification emails don't affect subscription status
     });
 
     if (result.success) {
-      console.log(`Email verification OTP sent successfully to ${email}`);
+      console.log(`Email verification link sent successfully to ${email}`);
     } else {
       console.error(
-        `Failed to send email verification OTP to ${email}:`,
+        `Failed to send email verification link to ${email}:`,
         result.error,
       );
     }
@@ -338,7 +526,7 @@ export async function sendEmailVerificationOTP(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
-      `Failed to send email verification OTP to ${email}:`,
+      `Failed to send email verification link to ${email}:`,
       errorMessage,
     );
     return {
@@ -349,34 +537,34 @@ export async function sendEmailVerificationOTP(
 }
 
 /**
- * Send password reset OTP as transactional email
+ * Send password reset link as transactional email
  * @param email User's email address
- * @param otpCode 6-digit OTP code
+ * @param resetUrl The password reset URL containing the token
  * @returns Promise<PlunkResponse> Success/failure result with error details
  */
-export async function sendPasswordResetOTP(
+export async function sendPasswordResetLink(
   email: string,
-  otpCode: string,
+  resetUrl: string,
 ): Promise<PlunkResponse> {
   try {
-    console.log(`Sending password reset OTP to ${email}`);
+    console.log(`Sending password reset link to ${email}`);
     const plunk = getPlunkClient();
 
     const result = await plunk.sendEmail({
       to: email,
-      subject: "Reset Your Password - Next.js Starter Kit",
-      body: generatePasswordResetEmailHTML(otpCode),
+      subject: "Reset Your Password - Polar SaaS Kit",
+      body: generatePasswordResetHTML(resetUrl),
       type: "html",
       from: "noreply@prosamik.in",
-      name: "Next.js Starter Kit",
+      name: "Polar SaaS Kit",
       subscribed: false, // Password reset emails don't affect subscription status
     });
 
     if (result.success) {
-      console.log(`Password reset OTP sent successfully to ${email}`);
+      console.log(`Password reset link sent successfully to ${email}`);
     } else {
       console.error(
-        `Failed to send password reset OTP to ${email}:`,
+        `Failed to send password reset link to ${email}:`,
         result.error,
       );
     }
@@ -386,7 +574,7 @@ export async function sendPasswordResetOTP(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
-      `Failed to send password reset OTP to ${email}:`,
+      `Failed to send password reset link to ${email}:`,
       errorMessage,
     );
     return {
@@ -397,43 +585,52 @@ export async function sendPasswordResetOTP(
 }
 
 /**
- * Track user signup event
+ * Track user signup event for analytics
  * @param email User's email address
- * @param fullName User's full name
- * @param signupDate Date of signup
- * @returns Promise<PlunkResponse>
+ * @param fullName User's full name (optional)
+ * @returns Promise<PlunkResponse> Success/failure result with error details
  */
 export async function trackUserSignup(
   email: string,
   fullName?: string,
 ): Promise<PlunkResponse> {
   try {
+    console.log(`Tracking user signup for ${email}`);
     const plunk = getPlunkClient();
 
-    return await plunk.trackEvent({
+    const result = await plunk.trackEvent({
       event: "user-signup",
-      email,
+      email: email,
       subscribed: true, // New users are subscribed by default
-      data: {
-        fullName: fullName,
-      },
+      data: fullName
+        ? {
+            fullName: fullName,
+          }
+        : {},
     });
+
+    if (result.success) {
+      console.log(`User signup tracked successfully for ${email}`);
+    } else {
+      console.error(
+        `Failed to track user signup for ${email}:`,
+        result.error,
+      );
+    }
+
+    return result;
   } catch (error) {
-    console.error("Failed to track user signup:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error(
+      `Failed to track user signup for ${email}:`,
+      errorMessage,
+    );
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: errorMessage,
     };
   }
 }
 
-// Legacy function names for backward compatibility
-/**
- * @deprecated Use sendEmailVerificationOTP instead
- */
-export const trackEmailVerificationOTP = sendEmailVerificationOTP;
-
-/**
- * @deprecated Use sendPasswordResetOTP instead
- */
-export const trackPasswordResetOTP = sendPasswordResetOTP;
+ 
