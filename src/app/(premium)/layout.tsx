@@ -6,6 +6,7 @@ import { authClient } from "auth/client";
 import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Settings } from "@/components/settings";
 import { Profile } from "@/components/profile";
+import { NotificationManager } from "@/components/notification-manager";
 
 /**
  * Premium layout with sidebar navigation and dynamic content rendering
@@ -55,8 +56,11 @@ export default function PremiumLayout({
   }
 
   return (
-    <AppSidebar onNavigate={handleNavigation}>
-      {renderContent()}
-    </AppSidebar>
+    <>
+      <NotificationManager />
+      <AppSidebar onNavigate={handleNavigation}>
+        {renderContent()}
+      </AppSidebar>
+    </>
   );
 }
