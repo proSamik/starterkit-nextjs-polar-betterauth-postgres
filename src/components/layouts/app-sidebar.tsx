@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import { Sidebar, SidebarBody, SidebarLink } from "ui/sidebar";
 import {
@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { authClient } from "auth/client";
 import { toast } from "sonner";
+import { useSidebar, useStoreActions } from "../../app/store";
 
 /**
  * App sidebar component with navigation links and user profile
@@ -25,7 +26,20 @@ export function AppSidebar({
   onNavigate: (page: 'dashboard' | 'profile' | 'settings') => void;
 }) {
   const { data: session } = authClient.useSession();
-  const [open, setOpen] = useState(false);
+  const { isCollapsed, toggle } = useSidebar();
+  const { setUser } = useStoreActions();
+  
+  // Sync user data with store when session changes
+  useEffect(() => {
+    if (session?.user) {
+      setUser({
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        avatar: session.user.image || undefined,
+      });
+    }
+  }, [session, setUser]);
   
   const user = session?.user;
 
@@ -79,10 +93,15 @@ export function AppSidebar({
         "h-screen"
       )}
     >
-      <Sidebar open={open} setOpen={setOpen}>
+      <Sidebar open={!isCollapsed} setOpen={(open) => {
+        // If the new open state is different from current, toggle
+        if (open !== !isCollapsed) {
+          toggle();
+        }
+      }}>
         <SidebarBody className="justify-between gap-10">
           <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
-            {open ? <Logo /> : <LogoIcon />}
+            {!isCollapsed ? <Logo /> : <LogoIcon />}
             <div className="mt-8 flex flex-col gap-2">
               {links.map((link, idx) => {
                 const isLogout = link.label === "Logout";
