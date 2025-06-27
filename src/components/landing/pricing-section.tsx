@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Star } from "lucide-react";
-import { authClient } from "auth/client";
+import { authClient, enhancedAuthClient } from "auth/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
@@ -26,7 +26,7 @@ const pricingTiers: PricingTier[] = [
     features: [
       "Complete source code access",
       "Basic authentication setup",
-      "Database schema & migrations", 
+      "Database schema & migrations",
       "Tailwind CSS components",
       "Docker configuration",
       "MIT License",
@@ -42,7 +42,7 @@ const pricingTiers: PricingTier[] = [
       "Everything in Free",
       "Polar.sh payment integration",
       "Advanced auth configurations",
-      "Premium UI components", 
+      "Premium UI components",
       "Email templates & automation",
       "Priority support",
       "Commercial license",
@@ -112,7 +112,7 @@ export function PricingSection() {
         (!data.activeSubscriptions || data.activeSubscriptions.length === 0)
       ) {
         try {
-          const ordersResponse = await authClient.customer.orders.list({
+          const ordersResponse = await enhancedAuthClient.customer.orders.list({
             query: {
               page: 1,
               limit: 10,
@@ -187,8 +187,7 @@ export function PricingSection() {
       // Get product IDs from environment
       const MONTHLY_PRODUCT_ID =
         process.env.NEXT_PUBLIC_POLAR_MONTHLY_PRODUCT_ID;
-      const YEARLY_PRODUCT_ID = 
-        process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID;
+      const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID;
 
       // Check for any one-time purchase (lifetime deal)
       const hasLifetimeAccess = lifetimeOrders.length > 0;
@@ -206,13 +205,16 @@ export function PricingSection() {
       }
 
       // Prevent downgrading or duplicate subscriptions
-      if (hasActiveSubscription && (planSlug === "monthly" || planSlug === "yearly")) {
+      if (
+        hasActiveSubscription &&
+        (planSlug === "monthly" || planSlug === "yearly")
+      ) {
         toast.info(
           "You already have an active subscription. You can manage it in your dashboard.",
         );
         return;
       }
-      
+
       // Allow upgrading to lifetime even with existing subscription
       if (hasActiveSubscription && planSlug === "lifetime") {
         toast.info(
@@ -255,8 +257,7 @@ export function PricingSection() {
       // Get product IDs from environment
       const MONTHLY_PRODUCT_ID =
         process.env.NEXT_PUBLIC_POLAR_MONTHLY_PRODUCT_ID;
-      const YEARLY_PRODUCT_ID = 
-        process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID;
+      const YEARLY_PRODUCT_ID = process.env.NEXT_PUBLIC_POLAR_YEARLY_PRODUCT_ID;
 
       // Check for any one-time purchase (lifetime deal)
       const hasLifetimeAccess = lifetimeOrders.length > 0;
@@ -275,12 +276,16 @@ export function PricingSection() {
       // Handle different subscription states
       if (hasActiveSubscription) {
         // Check which specific subscription is active
-        const activeMonthlySubscription = customerState?.activeSubscriptions?.find(
-          (sub: any) => sub.status === "active" && sub.productId === MONTHLY_PRODUCT_ID
-        );
-        const activeYearlySubscription = customerState?.activeSubscriptions?.find(
-          (sub: any) => sub.status === "active" && sub.productId === YEARLY_PRODUCT_ID
-        );
+        const activeMonthlySubscription =
+          customerState?.activeSubscriptions?.find(
+            (sub: any) =>
+              sub.status === "active" && sub.productId === MONTHLY_PRODUCT_ID,
+          );
+        const activeYearlySubscription =
+          customerState?.activeSubscriptions?.find(
+            (sub: any) =>
+              sub.status === "active" && sub.productId === YEARLY_PRODUCT_ID,
+          );
 
         // Show "Currently Active" only for the actual active subscription
         if (tier.planSlug === "monthly" && activeMonthlySubscription) {
@@ -289,7 +294,7 @@ export function PricingSection() {
         if (tier.planSlug === "yearly" && activeYearlySubscription) {
           return { disabled: true, text: "Currently Active" };
         }
-        
+
         // For non-active subscriptions, show change plan options
         if (tier.planSlug === "monthly" && activeYearlySubscription) {
           return { disabled: false, text: "Change Plan" };
@@ -297,16 +302,19 @@ export function PricingSection() {
         if (tier.planSlug === "yearly" && activeMonthlySubscription) {
           return { disabled: false, text: "Upgrade to Yearly" };
         }
-        
+
         // Allow lifetime upgrade from any subscription
         if (tier.planSlug === "lifetime") {
           return { disabled: false, text: "Upgrade to Lifetime" };
         }
       }
-      
+
       // Free plan is always available
       if (tier.planSlug === "free") {
-        return { disabled: false, text: session?.user ? "Go to Dashboard" : "Sign In to Start" };
+        return {
+          disabled: false,
+          text: session?.user ? "Go to Dashboard" : "Sign In to Start",
+        };
       }
     }
 
@@ -330,7 +338,7 @@ export function PricingSection() {
             Choose Your Development Package
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            From open source basics to enterprise-ready features. Start building 
+            From open source basics to enterprise-ready features. Start building
             your SaaS application with the tools you need.
           </p>
         </div>
@@ -376,7 +384,10 @@ export function PricingSection() {
                       <span className="text-muted-foreground ml-1">/year</span>
                     )}
                     {tier.name === "Lifetime" && (
-                      <span className="text-muted-foreground ml-1"> one-time</span>
+                      <span className="text-muted-foreground ml-1">
+                        {" "}
+                        one-time
+                      </span>
                     )}
                   </div>
                   <p className="text-muted-foreground">{tier.description}</p>
@@ -386,7 +397,9 @@ export function PricingSection() {
                   {tier.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start">
                       <Check className="h-5 w-5 text-primary mt-0.5 mr-3 flex-shrink-0" />
-                      <span className="text-card-foreground text-sm">{feature}</span>
+                      <span className="text-card-foreground text-sm">
+                        {feature}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -415,7 +428,10 @@ export function PricingSection() {
                       className="w-full bg-foreground hover:bg-foreground/90 text-background font-semibold py-3 px-6 rounded-lg transition-colors"
                       onClick={() => {
                         if (tier.name === "Free") {
-                          window.open("https://github.com/cgoinglove/nextjs-polar-starter-kit", "_blank");
+                          window.open(
+                            "https://github.com/cgoinglove/nextjs-polar-starter-kit",
+                            "_blank",
+                          );
                         } else {
                           toast.info("Contact sales for enterprise pricing");
                         }
@@ -430,8 +446,8 @@ export function PricingSection() {
                       : tier.name === "Monthly"
                         ? "Cancel anytime, no long-term commitment"
                         : tier.name === "Yearly"
-                        ? "Annual billing, 20% savings"
-                        : "One-time payment, lifetime access"}
+                          ? "Annual billing, 20% savings"
+                          : "One-time payment, lifetime access"}
                   </p>
                 </div>
               </div>
