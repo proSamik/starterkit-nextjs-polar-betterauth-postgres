@@ -1,19 +1,19 @@
 import "load-env";
+import type { Config } from "drizzle-kit";
 
-const dialect = "postgresql";
-
-const url = process.env.POSTGRES_URL!;
-
-const schema = "./src/lib/db/pg/schema.pg.ts";
-
-const out = "./src/lib/db/migrations/pg";
-
+/**
+ * Drizzle Kit configuration for NeonDB
+ * Supports SSL connections required by NeonDB
+ */
 export default {
-  schema,
-  out,
-  dialect,
+  schema: "./src/lib/db/pg/schema.pg.ts",
+  out: "./src/lib/db/migrations/pg",
+  dialect: "postgresql",
   migrations: {},
   dbCredentials: {
-    url,
+    url: process.env.POSTGRES_URL!,
+    ssl: process.env.NODE_ENV === "production" ? "require" : false,
   },
-};
+  verbose: true,
+  strict: true,
+} satisfies Config;
