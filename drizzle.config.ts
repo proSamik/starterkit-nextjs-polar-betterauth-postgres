@@ -12,8 +12,16 @@ export default {
   schema,
   out,
   dialect,
-  migrations: {},
+  migrations: {}, 
   dbCredentials: {
     url,
+    connectionString: url,
+    ssl: process.env.NODE_ENV === "production", // Enable SSL in production only
+  },
+  // Add PostgreSQL specific options with timeout
+  driver: {
+    options: {
+      connectionTimeout: 10000, // 10 seconds timeout
+    },
   },
 };
