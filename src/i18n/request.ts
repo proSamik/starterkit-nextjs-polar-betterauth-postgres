@@ -1,5 +1,6 @@
 import { getRequestConfig } from "next-intl/server";
-import { getLocaleAction } from "./get-locale";
+import { getLocaleSafe } from "./get-locale";
+import { getDefaultLocale } from "./locale-utils";
 
 // Import all messages statically to avoid dynamic import issues
 import enMessages from "../../messages/en.json";
@@ -20,8 +21,22 @@ const messages: Record<string, any> = {
   hi: hiMessages,
 };
 
+/**
+ * Next-intl request configuration with comprehensive error handling
+ * Provides multiple fallback layers to ensure locale is always available
+ */
 export default getRequestConfig(async () => {
-  const locale = await getLocaleAction();
+  let locale: string;
+
+  try {
+    locale = await getLocaleSafe();
+  } catch (error) {
+    console.warn(
+      "Failed to get locale safely, falling back to default:",
+      error,
+    );
+    locale = getDefaultLocale();
+  }
 
   return {
     locale,

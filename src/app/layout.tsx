@@ -7,6 +7,7 @@ import { BASE_THEMES } from "lib/const";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { ConditionalNavigation } from "@/components/layouts/conditional-navigation";
+import { getDefaultLocale } from "@/i18n/locale-utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,13 +26,36 @@ export const metadata: Metadata = {
 
 const themes = BASE_THEMES.flatMap((t) => [t, `${t}-dark`]);
 
+/**
+ * Root layout component with error handling for locale detection
+ * @param children - The child components to render
+ * @returns The root layout JSX
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
+  let locale: string;
+  let messages: any;
+
+  try {
+    locale = await getLocale();
+    messages = await getMessages();
+  } catch (error) {
+    console.warn("Failed to get locale/messages, using defaults:", error);
+    // Fallback to default locale and messages
+    locale = getDefaultLocale();
+    try {
+      // Try to import default messages
+      const defaultMessages = await import("../../messages/en.json");
+      messages = defaultMessages.default;
+    } catch (importError) {
+      console.error("Failed to import default messages:", importError);
+      messages = {};
+    }
+  }
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
