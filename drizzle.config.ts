@@ -12,10 +12,8 @@ export default {
   schema,
   out,
   dialect,
-  migrations: {}, 
+  migrations: {},
   dbCredentials: {
     url,
-    ssl: true,
-    connectionTimeout: 30000, // Increase timeout to 30 seconds
   },
 };
