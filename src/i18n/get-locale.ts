@@ -8,6 +8,11 @@ import { validateLocale, getDefaultLocale } from "./locale-utils";
  * @returns The locale from cookies or undefined if not found or error occurs
  */
 async function getLocaleFromCookie(): Promise<string | undefined> {
+  // Only access cookies in server-side runtime environments
+  if (process.env.NEXT_RUNTIME !== 'nodejs' && process.env.NEXT_RUNTIME !== 'edge') {
+    return undefined;
+  }
+
   try {
     const cookieStore = await cookies();
     const locale = cookieStore.get(COOKIE_KEY_LOCALE)?.value;
@@ -24,6 +29,11 @@ async function getLocaleFromCookie(): Promise<string | undefined> {
  * @returns The locale from headers or undefined if not found or error occurs
  */
 async function getLocalFromHeader(): Promise<string | undefined> {
+  // Only access headers in server-side runtime environments
+  if (process.env.NEXT_RUNTIME !== 'nodejs' && process.env.NEXT_RUNTIME !== 'edge') {
+    return undefined;
+  }
+
   try {
     const headerStore = await headers();
     const locale = headerStore
