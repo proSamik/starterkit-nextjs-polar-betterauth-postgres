@@ -29,5 +29,7 @@ export default {
       connection: {
         statement_timeout: 30000, // 30 seconds
       }
-  },
-};
+      },
+  };
+
+}
