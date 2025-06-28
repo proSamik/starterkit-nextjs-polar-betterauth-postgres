@@ -121,7 +121,10 @@ POLAR_LIFETIME_PRODUCT_ID=prod_xxxxxxxxxxxxx
 # Local development (using Docker)
 POSTGRES_URL=postgres://postgres:password@localhost:5432/polar_saas
 
-# Or use a cloud provider (Neon, Supabase, Railway, etc.)
+# NeonDB (Recommended for production)
+# POSTGRES_URL=postgresql://username:password@ep-cool-darkness-123456.us-east-2.aws.neon.tech/neondb?sslmode=require
+
+# Or use other cloud providers (Supabase, Railway, etc.)
 # POSTGRES_URL=postgresql://username:password@your-db-host:5432/database
 ```
 
@@ -160,23 +163,33 @@ pnpm db:migrate
 pnpm db:studio
 ```
 
-#### Option B: Cloud Database Provider
+#### Option B: NeonDB (Recommended for Production)
 
-1. **Sign up for a database provider:**
-   - [Neon](https://neon.tech) (Recommended)
-   - [Supabase](https://supabase.com)
-   - [Railway](https://railway.app)
-   - [PlanetScale](https://planetscale.com)
+NeonDB is a serverless PostgreSQL database perfect for modern applications:
 
-2. **Get your connection string** and add it to `.env`:
+1. **Quick Setup:**
+   ```bash
+   # Follow the detailed NeonDB setup guide
+   cat NEON_SETUP.md
+   ```
+
+2. **Get your NeonDB connection string** and add it to `.env`:
    ```env
-   POSTGRES_URL=postgresql://username:password@your-db-host:5432/database
+   POSTGRES_URL=postgresql://username:password@ep-cool-darkness-123456.us-east-2.aws.neon.tech/neondb?sslmode=require
    ```
 
 3. **Run migrations:**
    ```bash
    pnpm db:migrate
    ```
+
+#### Option C: Other Cloud Database Providers
+
+- [Supabase](https://supabase.com)
+- [Railway](https://railway.app)
+- [PlanetScale](https://planetscale.com)
+
+Follow the same process as NeonDB but without the SSL requirement.
 
 ### 5. Polar.sh Setup (Payment Provider)
 
