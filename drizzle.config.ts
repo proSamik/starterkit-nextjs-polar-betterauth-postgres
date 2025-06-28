@@ -15,7 +15,7 @@ export default {
   migrations: {}, 
   dbCredentials: {
     url,
-    ssl: false, // Disable SSL for development
+    ssl: true,
     connectionTimeout: 30000, // Increase timeout to 30 seconds
   },
 };
