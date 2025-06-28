@@ -15,8 +15,7 @@ export default {
   migrations: {}, 
   dbCredentials: {
     url,
-    connectionString: url,
-    ssl: process.env.NODE_ENV === "production", // Enable SSL in production only
-    connectionTimeout: 10000, // 10 seconds timeout
+    ssl: false, // Disable SSL for development
+    connectionTimeout: 30000, // Increase timeout to 30 seconds
   },
 };
