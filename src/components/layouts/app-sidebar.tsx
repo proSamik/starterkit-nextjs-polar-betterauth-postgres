@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect} from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import { Sidebar, SidebarBody, SidebarLink } from "ui/sidebar";
 import {
@@ -19,26 +19,26 @@ import { cn } from "@/lib/utils";
 import { authClient } from "auth/client";
 import { useSidebar, useStoreActions } from "../../app/store";
 
-
-type UserTier = 'free' | 'monthly' | 'yearly' | 'lifetime';
+type UserTier = "free" | "monthly" | "yearly" | "lifetime";
 
 /**
  * App sidebar component with navigation links and user profile
  */
-export function AppSidebar({ 
-  children, 
+export function AppSidebar({
+  children,
   onNavigate,
-  userTier = 'free'
-}: { 
+  userTier = "free",
+}: {
   children: React.ReactNode;
-  onNavigate: (page: 'dashboard' | 'profile' | 'settings' | 'subscription') => void;
+  onNavigate: (
+    page: "dashboard" | "profile" | "settings" | "subscription",
+  ) => void;
   userTier?: UserTier;
 }) {
   const { data: session } = authClient.useSession();
   const { isCollapsed, toggle } = useSidebar();
   const { setUser } = useStoreActions();
 
-  
   // Sync user data with store when session changes
   useEffect(() => {
     if (session?.user) {
@@ -50,7 +50,7 @@ export function AppSidebar({
       });
     }
   }, [session, setUser]);
-  
+
   const user = session?.user;
 
   /**
@@ -58,13 +58,13 @@ export function AppSidebar({
    */
   const getTierIcon = () => {
     switch (userTier) {
-      case 'free':
+      case "free":
         return <IconGift className="h-4 w-4 text-gray-500" />;
-      case 'monthly':
+      case "monthly":
         return <IconStar className="h-4 w-4 text-blue-500" />;
-      case 'yearly':
+      case "yearly":
         return <IconCalendar className="h-4 w-4 text-purple-500" />;
-      case 'lifetime':
+      case "lifetime":
         return <IconCrown className="h-4 w-4 text-yellow-500" />;
       default:
         return <IconGift className="h-4 w-4 text-gray-500" />;
@@ -76,16 +76,16 @@ export function AppSidebar({
    */
   const getTierName = () => {
     switch (userTier) {
-      case 'free':
-        return 'Free';
-      case 'monthly':
-        return 'Monthly';
-      case 'yearly':
-        return 'Yearly';
-      case 'lifetime':
-        return 'Lifetime';
+      case "free":
+        return "Free";
+      case "monthly":
+        return "Monthly";
+      case "yearly":
+        return "Yearly";
+      case "lifetime":
+        return "Lifetime";
       default:
-        return 'Free';
+        return "Free";
     }
   };
 
@@ -94,7 +94,7 @@ export function AppSidebar({
       await authClient.signOut();
       // Redirect to home page after sign out
       window.location.href = "/";
-    } catch (error) {
+    } catch (_error) {
       // Redirect anyway in case of error
       window.location.href = "/";
     }
@@ -104,7 +104,7 @@ export function AppSidebar({
    * Handle subscription management by navigating to subscription page
    */
   const handleSubscriptionManagement = () => {
-    onNavigate('subscription');
+    onNavigate("subscription");
   };
 
   const links = [
@@ -153,19 +153,22 @@ export function AppSidebar({
       <div
         className={cn(
           "mx-auto flex w-full flex-1 flex-col bg-background md:flex-row",
-          "h-screen"
+          "min-h-screen",
         )}
       >
-        <Sidebar open={!isCollapsed} setOpen={(open) => {
-          // If the new open state is different from current, toggle
-          if (open !== !isCollapsed) {
-            toggle();
-          }
-        }}>
-          <SidebarBody className="justify-between gap-10 overflow-x-hidden overflow-y-auto">
+        <Sidebar
+          open={!isCollapsed}
+          setOpen={(open) => {
+            // If the new open state is different from current, toggle
+            if (open !== !isCollapsed) {
+              toggle();
+            }
+          }}
+        >
+          <SidebarBody className="justify-between gap-10 overflow-x-hidden overflow-y-auto h-screen">
             <div className="flex flex-1 flex-col ">
               {!isCollapsed ? <Logo /> : <LogoIcon />}
-              
+
               {/* Tier Badge */}
               {!isCollapsed && (
                 <div className="mt-4 px-2">
@@ -177,7 +180,7 @@ export function AppSidebar({
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-6 flex flex-col gap-2">
                 {links.map((link, idx) => {
                   const isLogout = link.label === "Logout";
@@ -191,7 +194,13 @@ export function AppSidebar({
                         } else if (isSubscription) {
                           handleSubscriptionManagement();
                         } else {
-                          onNavigate(link.label.toLowerCase() as 'dashboard' | 'profile' | 'settings' | 'subscription');
+                          onNavigate(
+                            link.label.toLowerCase() as
+                              | "dashboard"
+                              | "profile"
+                              | "settings"
+                              | "subscription",
+                          );
                         }
                       }}
                       className="cursor-pointer"
@@ -202,7 +211,10 @@ export function AppSidebar({
                 })}
               </div>
             </div>
-            <div onClick={() => onNavigate('profile')} className="cursor-pointer">
+            <div
+              onClick={() => onNavigate("profile")}
+              className="cursor-pointer"
+            >
               <SidebarLink
                 link={{
                   label: user?.name || "User",
@@ -221,13 +233,18 @@ export function AppSidebar({
             </div>
           </SidebarBody>
         </Sidebar>
-        <div className="flex flex-1">
-          <div className="flex h-full w-full flex-1 flex-col gap-2 rounded-tl-2xl border border-sidebar-border bg-background p-2 md:p-6">
+        <div
+          className={cn(
+            "flex flex-1 min-h-screen transition-all duration-300",
+            "ml-0 md:ml-[60px]",
+            !isCollapsed && "md:ml-[300px]",
+          )}
+        >
+          <div className="flex min-h-full w-full flex-1 flex-col gap-2 rounded-tl-2xl border border-sidebar-border bg-background p-2 md:p-6 overflow-y-auto">
             {children}
           </div>
         </div>
       </div>
-
     </>
   );
 }
@@ -265,4 +282,4 @@ export const LogoIcon = () => {
       <div className="h-5 w-6 shrink-0 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-sidebar-foreground" />
     </a>
   );
-}; 
+};
